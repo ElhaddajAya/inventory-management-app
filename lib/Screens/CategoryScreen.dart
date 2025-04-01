@@ -29,8 +29,8 @@ class CategoryScreen extends StatelessWidget {
         child: GridView.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 3, // Nombre de colonnes (3 cases par ligne)
-            crossAxisSpacing: 10, // Espacement horizontal entre les cases
-            mainAxisSpacing: 10, // Espacement vertical entre les cases
+            crossAxisSpacing: 7, // Espacement horizontal entre les cases
+            mainAxisSpacing: 7, // Espacement vertical entre les cases
           ),
           itemCount: categories.length,
           itemBuilder: (context, index) {
@@ -53,14 +53,14 @@ class CategoryScreen extends StatelessWidget {
                   children: [
                     Icon(
                       categories[index]["icon"],
-                      size: 40,
+                      size: 30,
                       color: Colors.lightBlueAccent,
                     ),
                     SizedBox(height: 10), // Espacement entre l'icône et le texte
                     Text(
                       categories[index]["name"],
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     )
                   ],
                 ),

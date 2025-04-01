@@ -27,7 +27,7 @@ class HomeScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          "Médicaments",
+          "Produits",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.lightBlueAccent,
@@ -42,7 +42,7 @@ class HomeScreen extends StatelessWidget {
             children: [
               Text(
                 "Aucun médicament disponible.",
-                style: TextStyle(fontSize: 18),
+                style: TextStyle(fontSize: 15),
               ),
               SizedBox(height: 20),
               Image.asset("assets/images/pills.png", width: 50),
@@ -66,7 +66,7 @@ class HomeScreen extends StatelessWidget {
                   children: [
                     Image.asset(
                       medicine["image"],
-                      width: 70,
+                      width: 50,
                       fit: BoxFit.cover,
                     ),
                     SizedBox(width: 20),
@@ -75,31 +75,45 @@ class HomeScreen extends StatelessWidget {
                       children: [
                         Text(
                           medicine["name"],
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 5),
                         Row(
                           children: [
+                            Icon(Icons.category, size: 13, color: Colors.grey,),
+                            SizedBox(width: 5,),
                             Text(
                               "${medicine["category"]}",
-                              style: TextStyle(fontSize: 15, color: Colors.grey),
+                              style: TextStyle(fontSize: 13, color: Colors.grey),
                             ),
-                            SizedBox(width: 35,),
+                          ],
+                        ),
+                        SizedBox(height: 5,),
+                        Row(
+                          children: [
+                            Icon(Icons.store, size: 13,),
+                            SizedBox(width: 5,),
                             Text(
                               "${medicine["provider"]}",
-                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 5),
+                        Row(
+                          children: [
+                            Icon(Icons.production_quantity_limits, size: 13,),
+                            SizedBox(width: 5,),
+                            Text(
+                              "${medicine["stock"]}",
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
                         SizedBox(height: 5),
                         Text(
-                          "Stock : ${medicine["stock"]}",
+                          "${medicine["price"]} DH",
                           style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 5),
-                        Text(
-                          "MAD ${medicine["price"]}",
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),

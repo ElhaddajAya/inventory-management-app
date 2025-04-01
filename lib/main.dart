@@ -30,7 +30,7 @@ class _HomeScreenState extends State<HomePage> {
     HomeScreen(),
     CategoryScreen(),
     ProviderlistScreen(),
-    Container() // User's account
+    Container(), // User's account
   ];
 
   void _onItemTapped(int index) {
@@ -53,8 +53,8 @@ class _HomeScreenState extends State<HomePage> {
           NavigationDestination(
             icon: Icon(Icons.medical_services_outlined),
             selectedIcon: Icon(Icons.medical_services),
-            label: "Médicaments",
-            tooltip: "Médicaments",
+            label: "Produits",
+            tooltip: "Produits",
           ),
           NavigationDestination(
             icon: Icon(Icons.category_outlined),
@@ -71,8 +71,8 @@ class _HomeScreenState extends State<HomePage> {
           NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person),
-            label: "Mon compte",
-            tooltip: "Mon compte",
+            label: "Compte",
+            tooltip: "Compte",
           ),
         ],
       ),

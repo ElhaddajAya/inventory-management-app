@@ -34,7 +34,7 @@ class MedicineListScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          "Médicaments - $category",
+          "Produits - $category",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.lightBlueAccent,
@@ -50,7 +50,7 @@ class MedicineListScreen extends StatelessWidget {
                 Text(
                   "Aucun médicament de catégorie $category n'est disponible.",
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 18),
+                  style: TextStyle(fontSize: 15),
                 ),
                 SizedBox(height: 20,),
                 Image(
@@ -75,58 +75,78 @@ class MedicineListScreen extends StatelessWidget {
                 padding: EdgeInsets.fromLTRB(20, 15, 15, 15),
                 child: Row(
                   children: [
-                    Container(
-                      child: Image(
-                        image: AssetImage(medicine["image"]),
-                        width: 70,
-                        fit: BoxFit.cover,
-                      ),
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
+                    Image.asset(
+                      medicine["image"],
+                      width: 50,
+                      fit: BoxFit.cover,
                     ),
-                    SizedBox(width: 20,),
+                    SizedBox(width: 20),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           medicine["name"],
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 5),
+                        Row(
+                          children: [
+                            Icon(Icons.category, size: 13, color: Colors.grey,),
+                            SizedBox(width: 5,),
+                            Text(
+                              "${medicine["category"]}",
+                              style: TextStyle(fontSize: 13, color: Colors.grey),
+                            ),
+                          ],
                         ),
                         SizedBox(height: 5,),
+                        Row(
+                          children: [
+                            Icon(Icons.store, size: 13,),
+                            SizedBox(width: 5,),
+                            Text(
+                              "${medicine["provider"]}",
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 5),
+                        Row(
+                          children: [
+                            Icon(Icons.production_quantity_limits, size: 13,),
+                            SizedBox(width: 5,),
+                            Text(
+                              "${medicine["stock"]}",
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 5),
                         Text(
-                          "${medicine["provider"]}",
+                          "${medicine["price"]} DH",
                           style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 5,),
-                        Text(
-                          "Stock : ${medicine["stock"]}",
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 5,),
-                        Text(
-                          "MAD ${medicine["price"]}",
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                     Spacer(),
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.edit),
-                            color: Colors.lightBlueAccent,
-                            onPressed: () {},
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.delete),
-                            color: Colors.red,
-                            onPressed: () {
-                              _showDeleteConfirmation(context, medicine["name"]);
-                            },
-                          )
-                        ],
-                      )
-                    ],
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit),
+                          color: Colors.lightBlueAccent,
+                          onPressed: () {},
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          color: Colors.red,
+                          onPressed: () {
+                            _showDeleteConfirmation(context, medicine["name"]);
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               )
             );
