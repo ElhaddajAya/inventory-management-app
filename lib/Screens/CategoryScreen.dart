@@ -42,6 +42,10 @@ class CategoryScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (context) => MedicineListScreen(category: categories[index]["name"]))
                 );
               },
+              onLongPress: () {
+                // Afficher le menu contextuel
+                _showCategoryMenu(context, categories[index]["name"]);
+              },
               child: Card(
                 color: Colors.white,
                 elevation: 4, // Ombre autour des cartes pour un effet 3D
@@ -75,6 +79,49 @@ class CategoryScreen extends StatelessWidget {
         child: Icon(Icons.add),
         foregroundColor: Colors.white,
       ),
+    );
+  }
+
+  // Fonction pour afficher le menu contextuel
+  void _showCategoryMenu(BuildContext context, String categoryName) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.all(15),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                categoryName,
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              ListTile(
+                leading: Icon(Icons.edit, color: Colors.lightBlueAccent),
+                title: Text("Modifier"),
+                onTap: () {
+                  Navigator.pop(context);
+                  print("Modifier $categoryName");
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.delete, color: Colors.red),
+                title: Text("Supprimer"),
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("$categoryName supprimé")),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      }
     );
   }
 }
