@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:pharmacy_stock_management_app/Screens/UpdateMedicineScreen.dart';
 import 'MedicineListScreen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   final List<Map<String, dynamic>> medicines = [
     {
       "name": "Amoxicilline",
@@ -124,7 +130,20 @@ class HomeScreen extends StatelessWidget {
                         IconButton(
                           icon: Icon(Icons.edit),
                           color: Colors.lightBlueAccent,
-                          onPressed: () {},
+                          onPressed: () async {
+                            final updateMedicine = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => UpdateMedicineScreen(medicine: medicine)
+                              )
+                            );
+                            if(updateMedicine != null) {
+                              setState(() {
+                                // Mettre à jour la liste des médicaments avec les nouvelles données
+                                medicines[medicines.indexOf(medicine)] = updateMedicine;
+                              });
+                            }
+                          },
                         ),
                         IconButton(
                           icon: Icon(Icons.delete),

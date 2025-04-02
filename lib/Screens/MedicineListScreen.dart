@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:pharmacy_stock_management_app/Screens/UpdateMedicineScreen.dart';
 
-class MedicineListScreen extends StatelessWidget {
+class MedicineListScreen extends StatefulWidget {
   final String category; // Var. pour stocker la catégorie séléctionnée
 
+  MedicineListScreen({required this.category});
+
+  @override
+  _MedicineListScreenState createState() => _MedicineListScreenState();
+}
+
+class _MedicineListScreenState extends State<MedicineListScreen> {
   final List<Map<String, dynamic>> medicines = [
     {
       "name": "Amoxicilline",
@@ -22,19 +30,17 @@ class MedicineListScreen extends StatelessWidget {
     }
   ];
 
-  MedicineListScreen({required this.category});
-
   @override
   Widget build(BuildContext context) {
     // Filtrer les médicaments en fonction de la catégorie sélectionnée
     List<Map<String, dynamic>> filteredMedicines =
-        medicines.where((med) => med["category"] == category).toList();
+        medicines.where((med) => med["category"] == widget.category).toList();
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          "Produits - $category",
+          "Produits - $widget.category",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.lightBlueAccent,
@@ -48,7 +54,7 @@ class MedicineListScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "Aucun médicament de catégorie $category n'est disponible.",
+                  "Aucun médicament de catégorie $widget.category n'est disponible.",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 15),
                 ),
@@ -135,7 +141,20 @@ class MedicineListScreen extends StatelessWidget {
                         IconButton(
                           icon: Icon(Icons.edit),
                           color: Colors.lightBlueAccent,
-                          onPressed: () {},
+                          onPressed: () async {
+                            final updateMedicine = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => UpdateMedicineScreen(medicine: medicine)
+                                )
+                            );
+                            if(updateMedicine != null) {
+                              setState(() {
+                                // Mettre à jour la liste des médicaments avec les nouvelles données
+                                medicines[medicines.indexOf(medicine)] = updateMedicine;
+                              });
+                            }
+                          },
                         ),
                         IconButton(
                           icon: Icon(Icons.delete),
