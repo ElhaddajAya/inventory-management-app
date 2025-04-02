@@ -34,8 +34,14 @@ class _UpdateMedicineScreenState extends State<UpdateMedicineScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
-          title: Text("Mettre à Jour le Médicament"),
+          title: Text(
+            "Mettre à jour ${widget.medicine["name"]}",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Colors.lightBlueAccent,
+          foregroundColor: Colors.white,
         ),
         body: Padding(
           padding: EdgeInsets.all(16.0),

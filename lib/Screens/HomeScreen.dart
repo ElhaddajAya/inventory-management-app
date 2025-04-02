@@ -76,54 +76,57 @@ class _HomeScreenState extends State<HomeScreen> {
                       fit: BoxFit.cover,
                     ),
                     SizedBox(width: 20),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          medicine["name"],
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 5),
-                        Row(
-                          children: [
-                            Icon(Icons.category, size: 13, color: Colors.grey,),
-                            SizedBox(width: 5,),
-                            Text(
-                              "${medicine["category"]}",
-                              style: TextStyle(fontSize: 13, color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 5,),
-                        Row(
-                          children: [
-                            Icon(Icons.store, size: 13,),
-                            SizedBox(width: 5,),
-                            Text(
-                              "${medicine["provider"]}",
-                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 5),
-                        Row(
-                          children: [
-                            Icon(Icons.production_quantity_limits, size: 13,),
-                            SizedBox(width: 5,),
-                            Text(
-                              "${medicine["stock"]}",
-                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 5),
-                        Text(
-                          "${medicine["price"]} DH",
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            medicine["name"],
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(height: 5),
+                          Row(
+                            children: [
+                              Icon(Icons.category, size: 15, color: Colors.grey),
+                              SizedBox(width: 5),
+                              Text(
+                                "${medicine["category"]}",
+                                style: TextStyle(
+                                    fontSize: 15, color: Colors.grey),
+                              ),
+                              Spacer(),
+                              Icon(Icons.production_quantity_limits, size: 15),
+                              SizedBox(width: 5),
+                              Text(
+                                "${medicine["stock"]}",
+                                style: TextStyle(
+                                    fontSize: 15, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 5),
+                          Row(
+                            children: [
+                              Icon(Icons.store, size: 15),
+                              SizedBox(width: 5),
+                              Text(
+                                "${medicine["provider"]}",
+                                style: TextStyle(
+                                    fontSize: 15, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            "${medicine["price"]} DH",
+                            style: TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
                     ),
-                    Spacer(),
+                    SizedBox(width: 10,),
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -134,13 +137,15 @@ class _HomeScreenState extends State<HomeScreen> {
                             final updateMedicine = await Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => UpdateMedicineScreen(medicine: medicine)
-                              )
+                                builder: (context) =>
+                                    UpdateMedicineScreen(medicine: medicine),
+                              ),
                             );
-                            if(updateMedicine != null) {
+                            if (updateMedicine != null) {
                               setState(() {
                                 // Mettre à jour la liste des médicaments avec les nouvelles données
-                                medicines[medicines.indexOf(medicine)] = updateMedicine;
+                                medicines[medicines.indexOf(medicine)] =
+                                    updateMedicine;
                               });
                             }
                           },
@@ -181,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text("Annuler", style: TextStyle(color: Colors.lightBlueAccent),),
+              child: Text("Annuler", style: TextStyle(color: Colors.lightBlueAccent)),
             ),
             TextButton(
               onPressed: () {
