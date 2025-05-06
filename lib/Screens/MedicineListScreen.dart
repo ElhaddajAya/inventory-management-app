@@ -119,12 +119,12 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                           SizedBox(height: 5),
                           Row(
                             children: [
-                              Icon(Icons.store, size: 15),
+                              Icon(Icons.store, size: 15, color: Colors.lightGreen,),
                               SizedBox(width: 5),
                               Text(
                                 "${medicine["provider"]}",
                                 style: TextStyle(
-                                    fontSize: 15, fontWeight: FontWeight.bold),
+                                    fontSize: 15, fontWeight: FontWeight.bold, color: Colors.lightGreen),
                               ),
                             ],
                           ),
@@ -132,7 +132,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                           Text(
                             "${medicine["price"]} DH",
                             style: TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.bold),
+                                fontSize: 15, fontWeight: FontWeight.bold, color: Colors.orange),
                           ),
                         ],
                       ),

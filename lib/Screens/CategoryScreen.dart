@@ -4,12 +4,12 @@ import 'MedicineListScreen.dart';
 
 class CategoryScreen extends StatelessWidget {
   final List<Map<String, dynamic>> categories = [
-    {"name": "Antibiotiques", "icon": Icons.medical_services},
-    {"name": "Antalgiques", "icon": Icons.healing},
-    {"name": "Vitamines", "icon": Icons.local_florist},
-    {"name": "Sirop", "icon": Icons.liquor},
-    {"name": "Antiseptiques", "icon": Icons.sanitizer},
-    {"name": "Allergies", "icon": Icons.cloud},
+    {"name": "Antibiotiques", "icon": Icons.medical_services, "color": Colors.orange},
+    {"name": "Antalgiques", "icon": Icons.healing, "color": Colors.lightGreen},
+    {"name": "Vitamines", "icon": Icons.local_florist, "color": Colors.lightBlue},
+    {"name": "Sirop", "icon": Icons.liquor, "color": Colors.redAccent},
+    {"name": "Antiseptiques", "icon": Icons.sanitizer, "color": Colors.cyan},
+    {"name": "Allergies", "icon": Icons.cloud, "color": Colors.deepPurpleAccent},
   ];
 
   @override
@@ -58,7 +58,7 @@ class CategoryScreen extends StatelessWidget {
                     Icon(
                       categories[index]["icon"],
                       size: 30,
-                      color: Colors.lightBlueAccent,
+                      color: categories[index]["color"],
                     ),
                     SizedBox(height: 10), // Espacement entre l'icône et le texte
                     Text(
@@ -73,12 +73,12 @@ class CategoryScreen extends StatelessWidget {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.lightBlueAccent,
-        onPressed: () {},
-        child: Icon(Icons.add),
-        foregroundColor: Colors.white,
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   backgroundColor: Colors.lightBlueAccent,
+      //   onPressed: () {},
+      //   child: Icon(Icons.add),
+      //   foregroundColor: Colors.white,
+      // ),
     );
   }
 
@@ -89,6 +89,7 @@ class CategoryScreen extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
       ),
+      backgroundColor: Colors.white,
       builder: (context) {
         return Padding(
           padding: EdgeInsets.all(15),
