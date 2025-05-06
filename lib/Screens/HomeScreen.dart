@@ -112,7 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildStatisticCard(
                   "Fourniss. fidèles",
                   loyalProviders,
-                  Colors.blue,
+                  Colors.orange,
                   Icon(Icons.store, color: Colors.white, size: 30)
                 ),
               ],

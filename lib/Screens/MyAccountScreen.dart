@@ -91,7 +91,7 @@ class MyAccountScreen extends StatelessWidget {
                         SizedBox(height: 10,),
                         Row(
                           children: [
-                            Icon(Icons.email, color: Colors.green,),
+                            Icon(Icons.email, color: Colors.orange,),
                             SizedBox(width: 15,),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,7 +113,7 @@ class MyAccountScreen extends StatelessWidget {
                         SizedBox(height: 10,),
                         Row(
                           children: [
-                            Icon(Icons.phone, color: Colors.lightBlueAccent),
+                            Icon(Icons.phone, color: Colors.orange),
                             SizedBox(width: 15,),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,7 +134,7 @@ class MyAccountScreen extends StatelessWidget {
                         SizedBox(height: 10,),
                         Row(
                           children: [
-                            Icon(Icons.location_on, color: Colors.deepPurpleAccent,),
+                            Icon(Icons.location_on, color: Colors.orange,),
                             SizedBox(width: 15,),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,

@@ -41,10 +41,10 @@ class ProviderlistScreen extends StatelessWidget {
                       width: 60,
                       height: 60,
                       decoration: BoxDecoration(
-                        color: Colors.lightGreen.withOpacity(0.2),
+                        color: Colors.orange.withOpacity(0.2),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.store, size: 30, color: Colors.lightGreen),
+                      child: Icon(Icons.store, size: 30, color: Colors.orange),
                     ),
                     SizedBox(width: 15),
                     // Détails du fournisseur
@@ -69,22 +69,22 @@ class ProviderlistScreen extends StatelessWidget {
                         SizedBox(height: 5),
                         Row(
                           children: [
-                            Icon(Icons.email, size: 13, color: Colors.orange,),
+                            Icon(Icons.email, size: 13),
                             SizedBox(width: 5,),
                             Text(
                               "${fourniss["email"]}",
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.orange),
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, ),
                             )
                           ],
                         ),
                         SizedBox(height: 5),
                         Row(
                           children: [
-                            Icon(Icons.phone, size: 13, color: Colors.lightBlue,),
+                            Icon(Icons.phone, size: 13,),
                             SizedBox(width: 5,),
                             Text(
                               "${fourniss["phone"]}",
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.lightBlue),
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, ),
                             )
                           ],
                         ),
