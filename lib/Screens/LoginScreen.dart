@@ -182,9 +182,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _resetEmailController,
                 decoration: InputDecoration(
                   labelText: "Email",
+                  labelStyle: TextStyle(color: Colors.lightBlueAccent),
                   prefixIcon: Icon(Icons.email, color: Colors.lightBlueAccent),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.lightBlueAccent, width: 2),
                   ),
                 ),
               ),
@@ -207,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.lightBlueAccent,
               ),
-              child: Text("Envoyer"),
+              child: Text("Envoyer", style: TextStyle(color: Colors.white),),
             ),
           ],
         );

@@ -78,8 +78,8 @@ class _HomeScreenState extends State<HomePage> {
             NavigationDestination(
               icon: Icon(Icons.person_outline, color: Colors.white),
               selectedIcon: Icon(Icons.person, color: Colors.white),
-              label: "Compte",
-              tooltip: "Compte",
+              label: "Profil",
+              tooltip: "Profil",
             ),
           ],
         ),
