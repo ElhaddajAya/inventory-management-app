@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class AddCategoryScreen extends StatefulWidget {
+class UpdateCategoryScreen extends StatefulWidget {
+  final Map<String, dynamic> category;
+
+  UpdateCategoryScreen({required this.category});
+
   @override
-  _AddCategoryScreenState createState() => _AddCategoryScreenState();
+  _UpdateCategoryScreenState createState() => _UpdateCategoryScreenState();
 }
 
-class _AddCategoryScreenState extends State<AddCategoryScreen> {
+class _UpdateCategoryScreenState extends State<UpdateCategoryScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _nameController = TextEditingController();
-
+  late TextEditingController _nameController;
   IconData? _selectedIcon;
   Color? _selectedColor;
 
@@ -21,8 +24,6 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
     "liquor": Icons.liquor,
     "sanitizer": Icons.sanitizer,
     "cloud": Icons.cloud,
-    "medication_liquid": Icons.medication_liquid,
-    "medication": Icons.medication
   };
 
   final Map<String, Color> _colors = {
@@ -32,12 +33,17 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
     "redAccent": Colors.redAccent,
     "cyan": Colors.cyan,
     "deepPurpleAccent": Colors.deepPurpleAccent,
-    "pinkAccent": Colors.pinkAccent,
-    "yellow": Colors.yellow,
-    "limeAccent": Colors.limeAccent
   };
 
-  Future<void> _submitCategory() async {
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.category['name']);
+    _selectedIcon = _icons[widget.category['icon']];
+    _selectedColor = _colors[widget.category['color']];
+  }
+
+  Future<void> _updateCategory() async {
     if (_formKey.currentState!.validate() && _selectedIcon != null && _selectedColor != null) {
       final iconName = _icons.entries.firstWhere((e) => e.value == _selectedIcon).key;
       final colorName = _colors.entries.firstWhere((e) => e.value == _selectedColor).key;
@@ -45,33 +51,28 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
       final response = await http.post(
         Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
         body: {
-          "action": "add_category",
+          "action": "update_category",
+          "id": widget.category['id'].toString(),
           "name": _nameController.text,
           "icon": iconName,
           "color": colorName,
         },
       );
 
-      print('Status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       final data = jsonDecode(response.body);
-
       if (response.statusCode == 200 && data['success'] == true) {
-        // Créer un objet Category avec les informations
-        final newCategory = {
+        final updatedCategory = {
+          'id': widget.category['id'],
           'name': _nameController.text,
-          'icon': _icons.entries.firstWhere((e) => e.value == _selectedIcon).key,
-          'color': _colors.entries.firstWhere((e) => e.value == _selectedColor).key,
+          'icon': iconName,
+          'color': colorName,
         };
-
-        // Retourner à la page de liste avec la nouvelle catégorie
-        Navigator.pop(context, newCategory);
+        Navigator.pop(context, updatedCategory); // Retourner la catégorie mise à jour
       } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Échec de l'ajout de la catégorie.")),
-      );
-    }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Échec de la mise à jour de la catégorie.")),
+        );
+      }
     }
   }
 
@@ -80,7 +81,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text("Ajouter une catégorie", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text("Modifier la catégorie", style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.lightBlueAccent,
         foregroundColor: Colors.white,
       ),
@@ -89,8 +90,8 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Nom de la catégorie
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
@@ -103,41 +104,68 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
                     borderSide: BorderSide(color: Colors.lightBlueAccent, width: 2),
                   ),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Veuillez entrer un nom";
-                  }
-                  return null;
-                },
+                validator: (value) => value == null || value.isEmpty ? "Veuillez entrer un nom" : null,
               ),
               SizedBox(height: 20),
+
+              // Icône
               DropdownButtonFormField<IconData>(
                 value: _selectedIcon,
+                items: _icons.entries.map((entry) {
+                  return DropdownMenuItem<IconData>(
+                    value: entry.value,
+                    child: Row(
+                      children: [
+                        Icon(entry.value),
+                        SizedBox(width: 10),
+                        Text(entry.key),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onChanged: (newIcon) {
+                  setState(() {
+                    _selectedIcon = newIcon;
+                  });
+                },
                 decoration: InputDecoration(
-                  fillColor: Colors.white,
-                  filled: true,
                   labelText: "Icône",
                   labelStyle: TextStyle(color: Colors.lightBlueAccent),
-                  prefixIcon: Icon(Icons.image, color: Colors.lightBlueAccent),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide(color: Colors.lightBlueAccent, width: 2),
                   ),
+                  prefixIcon: Icon(Icons.image, color: Colors.lightBlueAccent),
+                  fillColor: Colors.white,
+                  filled: true,
                 ),
                 dropdownColor: Colors.white,
-                items: _icons.entries.map((entry) {
-                  return DropdownMenuItem<IconData>(
-                    value: entry.value,
-                    child: Row(children: [Icon(entry.value), SizedBox(width: 10), Text(entry.key)]),
-                  );
-                }).toList(),
-                onChanged: (value) => setState(() => _selectedIcon = value),
                 validator: (value) => value == null ? "Veuillez sélectionner une icône" : null,
               ),
+
               SizedBox(height: 20),
+
+              // Couleur
               DropdownButtonFormField<Color>(
                 value: _selectedColor,
+                items: _colors.entries.map((entry) {
+                  return DropdownMenuItem<Color>(
+                    value: entry.value,
+                    child: Row(
+                      children: [
+                        Container(width: 20, height: 20, color: entry.value),
+                        SizedBox(width: 10),
+                        Text(entry.key),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onChanged: (newColor) {
+                  setState(() {
+                    _selectedColor = newColor;
+                  });
+                },
                 decoration: InputDecoration(
                   labelText: "Couleur",
                   labelStyle: TextStyle(color: Colors.lightBlueAccent),
@@ -151,20 +179,11 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
                   filled: true,
                 ),
                 dropdownColor: Colors.white,
-                items: _colors.entries.map((entry) {
-                  return DropdownMenuItem<Color>(
-                    value: entry.value,
-                    child: Row(children: [
-                      Container(width: 20, height: 20, decoration: BoxDecoration(color: entry.value, shape: BoxShape.circle)),
-                      SizedBox(width: 10),
-                      Text(entry.key)
-                    ]),
-                  );
-                }).toList(),
-                onChanged: (value) => setState(() => _selectedColor = value),
                 validator: (value) => value == null ? "Veuillez sélectionner une couleur" : null,
               ),
               SizedBox(height: 30),
+
+              // Boutons
               Row(
                 children: [
                   Expanded(
@@ -181,13 +200,13 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
                   SizedBox(width: 15),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: _submitCategory,
+                      onPressed: _updateCategory,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.lightBlueAccent,
                         padding: EdgeInsets.symmetric(vertical: 15),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
-                      child: Text("AJOUTER", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      child: Text("MODIFIER", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:pharmacy_stock_management_app/Screens/AddCategoryScreen.dart';
+import 'package:pharmacy_stock_management_app/Screens/UpdateCategoryScreen.dart';
 import 'MedicineListScreen.dart';
 
 class CategoryScreen extends StatefulWidget {
@@ -39,12 +40,15 @@ class _CategoryScreen extends State<CategoryScreen> {
       setState(() {
         categories = data.map<Map<String, dynamic>>((item) {
           return {
+            "id": item["id"],
             "name": item["name"],
-            "icon": _getIconData(item["icon"]),
-            "color": _getColor(item["color"]),
+            "icon": item["icon"], // garde le nom de l'icône (ex: "medical_services")
+            "color": item["color"], // garde le nom de la couleur (ex: "orange")
+            "displayIcon": _getIconData(item["icon"]), // pour afficher l'icône dans l'interface
+            "displayColor": _getColor(item["color"]), // pour afficher la couleur dans l'interface
           };
         }).toList();
-        isLoading = false; // <-- Ajouté ici
+        isLoading = false;
       });
     } else {
       print("Erreur lors du chargement des catégories");
@@ -110,7 +114,7 @@ class _CategoryScreen extends State<CategoryScreen> {
                 );
               },
               onLongPress: () {
-                _showCategoryMenu(context, categories[index]["name"]);
+                _showCategoryMenu(context, categories[index]);
               },
               child: Card(
                 color: Colors.white,
@@ -119,7 +123,7 @@ class _CategoryScreen extends State<CategoryScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(categories[index]["icon"], size: 30, color: categories[index]["color"]),
+                    Icon(categories[index]["displayIcon"], size: 30, color: categories[index]["displayColor"]),
                     SizedBox(height: 10),
                     Text(categories[index]["name"], textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                   ],
@@ -154,7 +158,7 @@ class _CategoryScreen extends State<CategoryScreen> {
   }
 
   // Fonction pour afficher le menu contextuel
-  void _showCategoryMenu(BuildContext context, String categoryName) {
+  void _showCategoryMenu(BuildContext context, Map<String, dynamic> category) {
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
@@ -168,16 +172,26 @@ class _CategoryScreen extends State<CategoryScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                categoryName,
+                category["name"],
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 10),
               ListTile(
                 leading: Icon(Icons.edit, color: Colors.lightBlueAccent),
                 title: Text("Modifier"),
-                onTap: () {
-                  Navigator.pop(context);
-                  print("Modifier $categoryName");
+                onTap: () async {
+                  Navigator.pop(context); // Fermer le menu
+                  // Dans la méthode qui ouvre UpdateCategoryScreen
+                  final updatedCategory = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UpdateCategoryScreen(category: category),
+                    ),
+                  );
+
+                  if (updatedCategory != null) {
+                    await fetchCategories(); // Rafraîchir les données
+                  }
                 },
               ),
               ListTile(
@@ -185,15 +199,43 @@ class _CategoryScreen extends State<CategoryScreen> {
                 title: Text("Supprimer"),
                 onTap: () {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("$categoryName supprimé")),
-                  );
+                  _deleteCategory(category["name"]);
                 },
               ),
             ],
           ),
         );
-      }
+      },
     );
   }
+
+  Future<void> _deleteCategory(String categoryName) async {
+    final category = categories.firstWhere((c) => c["name"] == categoryName);
+    final response = await http.post(
+      Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+      body: {
+        "action": "delete_category",
+        "id": category["id"].toString(),
+      },
+    );
+
+    final result = jsonDecode(response.body);
+    if (result["success"] == true) {
+      setState(() {
+        categories.removeWhere((c) => c["name"] == categoryName);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("$categoryName supprimée avec succès")),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result["message"] ?? "Impossible de supprimer cette catégorie"),
+          backgroundColor: Colors.orangeAccent,
+        ),
+      );
+    }
+  }
+
+
 }
