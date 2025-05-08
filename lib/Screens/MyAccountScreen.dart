@@ -25,7 +25,7 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
         backgroundColor: Colors.white,
         appBar: AppBar(
           title: Text(
-              "Mon Compte", style: TextStyle(fontWeight: FontWeight.bold)
+              "Mon Profil", style: TextStyle(fontWeight: FontWeight.bold)
           ),
           backgroundColor: Colors.lightBlueAccent,
           foregroundColor: Colors.white,

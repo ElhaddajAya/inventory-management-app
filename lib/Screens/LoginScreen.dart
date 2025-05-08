@@ -1,3 +1,6 @@
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:pharmacy_stock_management_app/Screens/HomeScreen.dart';
 import 'package:pharmacy_stock_management_app/main.dart';
@@ -128,14 +131,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(height: 30),
                     // Bouton de connexion
                     ElevatedButton(
+                      // onPressed: () {
+                      //   // Validation du formulaire
+                      //   if (_formKey.currentState!.validate()) {
+                      //     Navigator.pushAndRemoveUntil(
+                      //       context,
+                      //       MaterialPageRoute(builder: (context) => HomePage()),
+                      //           (route) => false, // Cela supprime toutes les routes précédentes
+                      //     );
+                      //   }
+                      // },
                       onPressed: () {
-                        // Validation du formulaire
                         if (_formKey.currentState!.validate()) {
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(builder: (context) => HomePage()),
-                                (route) => false, // Cela supprime toutes les routes précédentes
-                          );
+                          _loginUser();
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -218,6 +226,49 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       },
     );
+  }
+
+  Future<void> _loginUser() async {
+    final email = _emailController.text;
+    final password = _passwordController.text;
+
+    try {
+      final response = await http.post(
+        Uri.parse("http://192.168.1.6/pharmacy_api/api.php"), // ⚠️ mets l'adresse exacte de ton fichier PHP
+        body: {
+          "action": "login", // ✅ INDISPENSABLE
+          "email": email,
+          "password": password,
+        },
+      );
+
+      print("Réponse brute : ${response.body}");
+
+      final data = jsonDecode(response.body);
+
+      // Vérification que la réponse contient la clé "status" et qu'elle est égale à "success"
+      if (data["status"] == "success") {
+        // Vous pouvez ajouter une vérification des données spécifiques comme l'ID et le nom
+        final fullName = data["full_name"] ?? "Nom inconnu"; // Si 'full_name' est null, on affecte une valeur par défaut
+        final role = data["role"] ?? "Rôle inconnu"; // Si 'role' est null, on affecte une valeur par défaut
+
+        print("Utilisateur connecté : $fullName, Rôle : $role");
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(data["message"] ?? "Erreur inconnue")),
+        );
+      }
+    } catch (e) {
+      print("Erreur : $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Une erreur est survenue.")),
+      );
+    }
   }
 
   @override
