@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pharmacy_stock_management_app/Screens/CategoryScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/HomeScreen.dart';
+import 'package:pharmacy_stock_management_app/Screens/LoginScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/MyAccountScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/ProviderListScreen.dart';
 
@@ -13,7 +14,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomePage(),
+      // home: HomePage(),
+      home: LoginScreen(),  // Change ici la page d'accueil pour LoginScreen
     );
   }
 }
