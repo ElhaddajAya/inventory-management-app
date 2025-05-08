@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -6,75 +8,109 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<Map<String, dynamic>> medicines = [
-    {
-      "name": "Amoxicilline",
-      "category": "Antibiotiques",
-      "stock": 2,
-      "price": 50.0,
-      "provider": "PharmaPlus"
-    },
-    {
-      "name": "Ibuprofène",
-      "category": "Antalgiques",
-      "stock": 10,
-      "price": 30.0,
-      "provider": "MediPharm"
-    },
-    {
-      "name": "Paracétamol",
-      "category": "Antalgiques",
-      "stock": 0,
-      "price": 25.0,
-      "provider": "PharmaPlus"
-    },
-    {
-      "name": "Vitamine C",
-      "category": "Vitamines",
-      "stock": 50,
-      "price": 15.0,
-      "provider": "BioHealth"
-    },
-  ];
+  // final List<Map<String, dynamic>> medicines = [
+  //   {
+  //     "name": "Amoxicilline",
+  //     "category": "Antibiotiques",
+  //     "stock": 2,
+  //     "price": 50.0,
+  //     "provider": "PharmaPlus"
+  //   },
+  //   {
+  //     "name": "Ibuprofène",
+  //     "category": "Antalgiques",
+  //     "stock": 10,
+  //     "price": 30.0,
+  //     "provider": "MediPharm"
+  //   },
+  //   {
+  //     "name": "Paracétamol",
+  //     "category": "Antalgiques",
+  //     "stock": 0,
+  //     "price": 25.0,
+  //     "provider": "PharmaPlus"
+  //   },
+  //   {
+  //     "name": "Vitamine C",
+  //     "category": "Vitamines",
+  //     "stock": 50,
+  //     "price": 15.0,
+  //     "provider": "BioHealth"
+  //   },
+  // ];
+  //
+  // final List<Map<String, String>> providers = [
+  //   {"name": "PharmaPlus", "email": "contact@pharmaplus.com", "phone": "0111113124", "city": "Rabat"},
+  //   {"name": "MediPharm", "email": "info@medipharm.com", "phone": "0111113948", "city": "Kénitra"},
+  //   {"name": "BioHealth", "email": "support@biohealth.com", "phone": "0111119871", "city": "Safi"},
+  // ];
+  //
+  // String _calculateOutOfStock() {
+  //   List<String> outOfStock = medicines
+  //       .where((medicine) => medicine["stock"] == 0)
+  //       .map((medicine) => medicine["name"] as String)
+  //       .toList();
+  //   return outOfStock.isNotEmpty ? outOfStock.first : "Aucun";
+  // }
+  //
+  // int _calculateTotalStock() {
+  //   return medicines.fold<int>(
+  //     0,
+  //         (sum, medicine) => sum + (medicine["stock"] as int),
+  //   );
+  // }
+  //
+  // String _calculateLoyalProviders() {
+  //   Map<String, int> providerCount = {};
+  //   for (var medicine in medicines) {
+  //     providerCount[medicine["provider"]] = (providerCount[medicine["provider"]] ?? 0) + 1;
+  //   }
+  //   List<String> loyalProviders = providerCount.entries
+  //       .where((entry) => entry.value > 1)
+  //       .map((entry) => entry.key)
+  //       .toList();
+  //   return loyalProviders.isNotEmpty ? loyalProviders.first : "Aucun";
+  // }
 
-  final List<Map<String, String>> providers = [
-    {"name": "PharmaPlus", "email": "contact@pharmaplus.com", "phone": "0111113124", "city": "Rabat"},
-    {"name": "MediPharm", "email": "info@medipharm.com", "phone": "0111113948", "city": "Kénitra"},
-    {"name": "BioHealth", "email": "support@biohealth.com", "phone": "0111119871", "city": "Safi"},
-  ];
+  late String totalMedicines = "Chargement...";
+  late String rupture = "Chargement...";
+  late String loyalProvider = "Chargement...";
+  bool isLoading = true;
 
-  String _calculateOutOfStock() {
-    List<String> outOfStock = medicines
-        .where((medicine) => medicine["stock"] == 0)
-        .map((medicine) => medicine["name"] as String)
-        .toList();
-    return outOfStock.isNotEmpty ? outOfStock.first : "Aucun";
+  @override
+  void initState() {
+    super.initState();
+    fetchStatistics();
   }
 
-  int _calculateTotalStock() {
-    return medicines.fold<int>(
-      0,
-          (sum, medicine) => sum + (medicine["stock"] as int),
+  Future<void> fetchStatistics() async {
+    final url = 'http://192.168.1.6/pharmacy_api/api.php'; // Remplace par l'URL de ton API
+    final response = await http.post(
+      Uri.parse(url),
+      body: {'action': 'get_statistics'},
     );
-  }
 
-  String _calculateLoyalProviders() {
-    Map<String, int> providerCount = {};
-    for (var medicine in medicines) {
-      providerCount[medicine["provider"]] = (providerCount[medicine["provider"]] ?? 0) + 1;
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        totalMedicines = data['total_medicines'].toString();
+        rupture = data['rupture'].toString();
+        loyalProvider = data['loyal_provider'];
+        isLoading = false;
+      });
+    } else {
+      // Gérer les erreurs
+      setState(() {
+        isLoading = false;
+      });
     }
-    List<String> loyalProviders = providerCount.entries
-        .where((entry) => entry.value > 1)
-        .map((entry) => entry.key)
-        .toList();
-    return loyalProviders.isNotEmpty ? loyalProviders.first : "Aucun";
   }
 
   @override
   Widget build(BuildContext context) {
-    String outOfStock = _calculateOutOfStock();
-    int totalStock = _calculateTotalStock();
-    String loyalProviders = _calculateLoyalProviders();
+    // String outOfStock = _calculateOutOfStock();
+    // int totalStock = _calculateTotalStock();
+    // String loyalProviders = _calculateLoyalProviders();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -98,20 +134,20 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisSpacing: 10,
               children: [
                 _buildStatisticCard(
-                  "Produits en rupture",
-                  outOfStock,
+                  "Produit en rupture",
+                  rupture,
                   Colors.red,
                   Icon(Icons.production_quantity_limits, color: Colors.white, size: 30)
                 ),
                 _buildStatisticCard(
                   "Total en stock",
-                  "$totalStock",
+                  "$totalMedicines",
                   Colors.green,
                   Icon(Icons.medication_liquid, color: Colors.white, size: 30)
                 ),
                 _buildStatisticCard(
                   "Fourniss. fidèles",
-                  loyalProviders,
+                  loyalProvider,
                   Colors.orange,
                   Icon(Icons.store, color: Colors.white, size: 30)
                 ),

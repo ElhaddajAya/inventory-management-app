@@ -197,9 +197,9 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                                   ),
                                   onPressed: () {
                                     // Logout
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => LoginScreen())
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => LoginScreen()),
                                     );
                                   },
                                   child: Icon(Icons.logout),
