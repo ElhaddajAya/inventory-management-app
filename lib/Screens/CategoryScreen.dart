@@ -19,6 +19,7 @@ class _CategoryScreen extends State<CategoryScreen> {
   // ];
 
   List<Map<String, dynamic>> categories = [];
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -28,7 +29,7 @@ class _CategoryScreen extends State<CategoryScreen> {
 
   Future<void> fetchCategories() async {
     final response = await http.post(
-      Uri.parse("http://192.168.1.6/pharmacy_api/api.php"), // Remplace l'URL selon ton cas
+      Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
       body: {"action": "list_categories"},
     );
 
@@ -42,9 +43,13 @@ class _CategoryScreen extends State<CategoryScreen> {
             "color": _getColor(item["color"]),
           };
         }).toList();
+        isLoading = false; // <-- Ajouté ici
       });
     } else {
       print("Erreur lors du chargement des catégories");
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -84,48 +89,38 @@ class _CategoryScreen extends State<CategoryScreen> {
         backgroundColor: Colors.lightBlueAccent,
         foregroundColor: Colors.white,
       ),
-      body: Padding(
+      body: isLoading
+          ? Center(child: Text("Chargement...", style: TextStyle(fontSize: 17),))
+          : Padding(
         padding: EdgeInsets.all(10),
         child: GridView.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3, // Nombre de colonnes (3 cases par ligne)
-            crossAxisSpacing: 7, // Espacement horizontal entre les cases
-            mainAxisSpacing: 7, // Espacement vertical entre les cases
+            crossAxisCount: 3,
+            crossAxisSpacing: 7,
+            mainAxisSpacing: 7,
           ),
           itemCount: categories.length,
           itemBuilder: (context, index) {
             return GestureDetector(
-              // Lorsque l'utilisateur clique sur une catégorie, on ouvre l'écran des médicaments
               onTap: () {
                 Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => MedicineListScreen(category: categories[index]["name"]))
+                    context,
+                    MaterialPageRoute(builder: (context) => MedicineListScreen(category: categories[index]["name"]))
                 );
               },
               onLongPress: () {
-                // Afficher le menu contextuel
                 _showCategoryMenu(context, categories[index]["name"]);
               },
               child: Card(
                 color: Colors.white,
-                elevation: 4, // Ombre autour des cartes pour un effet 3D
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)
-                ),
+                elevation: 4,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center, // Centrer le contenu verticalement
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      categories[index]["icon"],
-                      size: 30,
-                      color: categories[index]["color"],
-                    ),
-                    SizedBox(height: 10), // Espacement entre l'icône et le texte
-                    Text(
-                      categories[index]["name"],
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                    )
+                    Icon(categories[index]["icon"], size: 30, color: categories[index]["color"]),
+                    SizedBox(height: 10),
+                    Text(categories[index]["name"], textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                   ],
                 ),
               ),
