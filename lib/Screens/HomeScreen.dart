@@ -75,6 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late String totalMedicines = "Chargement...";
   late String rupture = "Chargement...";
   late String loyalProvider = "Chargement...";
+  late String mostExpensiveMedicine = "Chargement...";
   bool isLoading = true;
 
   @override
@@ -96,6 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
         totalMedicines = data['total_medicines'].toString();
         rupture = data['rupture'].toString();
         loyalProvider = data['loyal_provider'];
+        mostExpensiveMedicine = data['most_expensive_medicine'];
         isLoading = false;
       });
     } else {
@@ -140,16 +142,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   Icon(Icons.production_quantity_limits, color: Colors.white, size: 30)
                 ),
                 _buildStatisticCard(
-                  "Total en stock",
+                  "Totals en stock",
                   "$totalMedicines",
                   Colors.green,
                   Icon(Icons.medication_liquid, color: Colors.white, size: 30)
                 ),
                 _buildStatisticCard(
-                  "Fourniss. fidèles",
+                  "Fourniss. fidèle",
                   loyalProvider,
                   Colors.orange,
                   Icon(Icons.store, color: Colors.white, size: 30)
+                ),
+                _buildStatisticCard(
+                  "Médic. le plus cher",
+                  mostExpensiveMedicine,
+                  Colors.blue,
+                  Icon(Icons.attach_money, color: Colors.white, size: 30)
                 ),
               ],
             ),
