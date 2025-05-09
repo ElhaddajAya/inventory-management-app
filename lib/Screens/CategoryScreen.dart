@@ -30,6 +30,10 @@ class _CategoryScreen extends State<CategoryScreen> {
   }
 
   Future<void> fetchCategories() async {
+    setState(() {
+      isLoading = true;
+    });
+
     final response = await http.post(
       Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
       body: {"action": "list_categories"},
@@ -42,10 +46,10 @@ class _CategoryScreen extends State<CategoryScreen> {
           return {
             "id": item["id"],
             "name": item["name"],
-            "icon": item["icon"], // garde le nom de l'icône (ex: "medical_services")
-            "color": item["color"], // garde le nom de la couleur (ex: "orange")
-            "displayIcon": _getIconData(item["icon"]), // pour afficher l'icône dans l'interface
-            "displayColor": _getColor(item["color"]), // pour afficher la couleur dans l'interface
+            "icon": item["icon"], // garde le nom de l'icône
+            "color": item["color"], // garde le nom de la couleur
+            "displayIcon": _getIconData(item["icon"]),
+            "displayColor": _getColor(item["color"]),
           };
         }).toList();
         isLoading = false;
@@ -66,6 +70,8 @@ class _CategoryScreen extends State<CategoryScreen> {
       case "liquor": return Icons.liquor;
       case "sanitizer": return Icons.sanitizer;
       case "cloud": return Icons.cloud;
+      case "medication_liquid": return Icons.medication_liquid;
+      case "medication": return Icons.medication;
       default: return Icons.category;
     }
   }
@@ -78,6 +84,8 @@ class _CategoryScreen extends State<CategoryScreen> {
       case "redAccent": return Colors.redAccent;
       case "cyan": return Colors.cyan;
       case "deepPurpleAccent": return Colors.deepPurpleAccent;
+      case "pinkAccent": return Colors.pinkAccent;
+      case "yellow": return Colors.yellow;
       default: return Colors.grey;
     }
   }
@@ -142,13 +150,8 @@ class _CategoryScreen extends State<CategoryScreen> {
           );
 
           if (newCategory != null) {
-            setState(() {
-              categories.add({
-                "name": newCategory["name"],
-                "icon": _getIconData(newCategory["icon"]),
-                "color": _getColor(newCategory["color"]),
-              });
-            });
+            // Au lieu d'ajouter manuellement, on rafraîchit toute la liste depuis l'API
+            await fetchCategories();
           }
         },
         child: Icon(Icons.add),

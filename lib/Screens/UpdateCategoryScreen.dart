@@ -24,6 +24,8 @@ class _UpdateCategoryScreenState extends State<UpdateCategoryScreen> {
     "liquor": Icons.liquor,
     "sanitizer": Icons.sanitizer,
     "cloud": Icons.cloud,
+    "medication_liquid": Icons.medication_liquid,
+    "medication": Icons.medication
   };
 
   final Map<String, Color> _colors = {
@@ -33,6 +35,8 @@ class _UpdateCategoryScreenState extends State<UpdateCategoryScreen> {
     "redAccent": Colors.redAccent,
     "cyan": Colors.cyan,
     "deepPurpleAccent": Colors.deepPurpleAccent,
+    "pinkAccent": Colors.pinkAccent,
+    "yellow": Colors.yellow,
   };
 
   @override

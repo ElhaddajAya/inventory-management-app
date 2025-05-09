@@ -34,7 +34,6 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
     "deepPurpleAccent": Colors.deepPurpleAccent,
     "pinkAccent": Colors.pinkAccent,
     "yellow": Colors.yellow,
-    "limeAccent": Colors.limeAccent
   };
 
   Future<void> _submitCategory() async {
@@ -52,26 +51,21 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
         },
       );
 
-      print('Status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['success'] == true) {
-        // Créer un objet Category avec les informations
-        final newCategory = {
+        // Retourner toutes les informations nécessaires
+        Navigator.pop(context, {
+          'id': data['id'], // Assurez-vous que votre API retourne l'ID
           'name': _nameController.text,
-          'icon': _icons.entries.firstWhere((e) => e.value == _selectedIcon).key,
-          'color': _colors.entries.firstWhere((e) => e.value == _selectedColor).key,
-        };
-
-        // Retourner à la page de liste avec la nouvelle catégorie
-        Navigator.pop(context, newCategory);
+          'icon': iconName,
+          'color': colorName,
+        });
       } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Échec de l'ajout de la catégorie.")),
-      );
-    }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Échec de l'ajout de la catégorie.")),
+        );
+      }
     }
   }
 
