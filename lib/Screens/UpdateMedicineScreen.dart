@@ -18,18 +18,23 @@ class _UpdateMedicineScreenState extends State<UpdateMedicineScreen> {
   final List<Map<String, dynamic>> _providers = [];
   String? _selectedProviderId;
   bool isLoading = true;
+
+  final List<Map<String, dynamic>> _categories = [];
+  String? _selectedCategoryId;
+
   // Clé pour la validation du formulaire
   final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    // Initialiser les contrôleurs avec les valeurs actuelles du médicament
     _nameController = TextEditingController(text: widget.medicine["name"]);
     _stockController = TextEditingController(text: widget.medicine["stock"].toString());
     _priceController = TextEditingController(text: widget.medicine["price"].toString());
-    // Récupérer les fournisseurs depuis l'API
+
+    // Charger les fournisseurs et les catégories
     _fetchProviders();
+    _fetchCategories();
   }
 
   Future<void> _fetchProviders() async {
@@ -77,6 +82,33 @@ class _UpdateMedicineScreenState extends State<UpdateMedicineScreen> {
       setState(() {
         isLoading = false;
       });
+    }
+  }
+
+  Future<void> _fetchCategories() async {
+    try {
+      final response = await http.post(
+        Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+        body: {"action": "list_categories"},
+      );
+
+      if (response.statusCode == 200) {
+        List data = jsonDecode(response.body);
+        setState(() {
+          _categories.clear();
+          _categories.addAll(data.map<Map<String, dynamic>>((item) => {
+            "id": item["id"].toString(),
+            "name": item["name"],
+          }).toList());
+
+          // Sélectionner la catégorie actuelle du médicament
+          _selectedCategoryId = widget.medicine["category_id"]?.toString();
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur lors du chargement des catégories")),
+      );
     }
   }
 
@@ -142,6 +174,43 @@ class _UpdateMedicineScreenState extends State<UpdateMedicineScreen> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return "Veuillez entrer le nom du médicament";
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 20),
+// Menu déroulant pour la catégorie
+                DropdownButtonFormField<String>(
+                  value: _selectedCategoryId,
+                  decoration: InputDecoration(
+                    labelText: "Catégorie",
+                    labelStyle: TextStyle(color: Colors.lightBlueAccent),
+                    prefixIcon: Icon(Icons.category, color: Colors.lightBlueAccent),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.lightBlueAccent, width: 2),
+                    ),
+                    fillColor: Colors.white,
+                    filled: true,
+                  ),
+                  dropdownColor: Colors.white,
+                  items: _categories.map((category) {
+                    return DropdownMenuItem<String>(
+                      value: category['id'].toString(),
+                      child: Text(category['name']),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedCategoryId = newValue;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Veuillez sélectionner une catégorie";
                     }
                     return null;
                   },
@@ -274,16 +343,27 @@ class _UpdateMedicineScreenState extends State<UpdateMedicineScreen> {
                                 Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
                                 body: {
                                   "action": "update_medicine",
-                                  "id": widget.medicine["id"].toString(), // Conversion en String
+                                  "id": widget.medicine["id"].toString(),
                                   "name": _nameController.text,
                                   "stock": _stockController.text,
                                   "price": _priceController.text,
                                   "provider_id": _selectedProviderId,
-                                  "category_id": widget.medicine["category_id"].toString(), // Conversion en String
+                                  "category_id": _selectedCategoryId,
                                 },
                               );
 
                               if (response.statusCode == 200) {
+                                // Trouver le nom de la catégorie sélectionnée
+                                String categoryName = widget.medicine["category"]; // Garde l'ancien nom par défaut
+                                if (_selectedCategoryId != null) {
+                                  final selectedCategory = _categories.firstWhere(
+                                        (c) => c["id"].toString() == _selectedCategoryId,
+                                    orElse: () => {"name": widget.medicine["category"]},
+                                  );
+                                  categoryName = selectedCategory["name"];
+                                }
+
+                                // Trouver le nom du fournisseur sélectionné
                                 String providerName = "Inconnu";
                                 if (_selectedProviderId != null) {
                                   final selectedProvider = _providers.firstWhere(
@@ -300,6 +380,8 @@ class _UpdateMedicineScreenState extends State<UpdateMedicineScreen> {
                                   "price": double.parse(_priceController.text),
                                   "provider_id": _selectedProviderId,
                                   "provider": providerName,
+                                  "category_id": _selectedCategoryId,
+                                  "category": categoryName,
                                 };
 
                                 Navigator.pop(context, updatedMedicine);

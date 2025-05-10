@@ -25,20 +25,22 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   void initState() {
     super.initState();
 
-    // Configuration de l'animation de fade
+    // Configuration de l'animation de fade (plus courte)
     _fadeController = AnimationController(
-      duration: Duration(milliseconds: 1200),
+      duration: Duration(milliseconds: 800),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(_fadeController);
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeIn),
+    );
 
-    // Configuration de l'animation de rotation
+    // Configuration de l'animation de rotation (avec une courbe plus fluide)
     _rotationController = AnimationController(
-      duration: Duration(milliseconds: 2000),
+      duration: Duration(milliseconds: 1500),
       vsync: this,
     );
     _rotationAnimation = Tween<double>(begin: 0, end: 2 * math.pi).animate(
-        CurvedAnimation(parent: _rotationController, curve: Curves.elasticOut)
+      CurvedAnimation(parent: _rotationController, curve: Curves.fastOutSlowIn),
     );
 
     // Configuration de l'animation de scale (zoom)
@@ -47,29 +49,32 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       vsync: this,
     );
     _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-        CurvedAnimation(parent: _scaleController, curve: Curves.elasticOut)
+      CurvedAnimation(parent: _scaleController, curve: Curves.fastOutSlowIn),
     );
 
-    // Démarrer les animations
-    _fadeController.forward();
-    _rotationController.forward();
-    _scaleController.forward();
+    // Démarrer les animations séquentiellement
+    _fadeController.forward().then((_) {
+      _rotationController.forward();
+      _scaleController.forward();
+    });
 
-    // Rediriger vers LoginScreen après 3 secondes
-    Timer(Duration(milliseconds: 3200), () {
-      Navigator.pushReplacement(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => LoginScreen(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: animation,
-              child: child,
-            );
-          },
-          transitionDuration: Duration(milliseconds: 800),
-        ),
-      );
+    // Rediriger vers LoginScreen après que toutes les animations sont terminées
+    _scaleController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => LoginScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(
+                opacity: animation,
+                child: child,
+              );
+            },
+            transitionDuration: Duration(milliseconds: 500),
+          ),
+        );
+      }
     });
   }
 
@@ -84,16 +89,16 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.lightBlueAccent, // Fond bleu (inversé par rapport à LoginScreen)
+      backgroundColor: Colors.lightBlueAccent,
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnimation,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo/icon de l'app (en blanc) avec rotation
+              // Logo/icon de l'app avec rotation et scale
               AnimatedBuilder(
-                animation: _rotationAnimation,
+                animation: Listenable.merge([_rotationAnimation, _scaleAnimation]),
                 builder: (_, child) {
                   return Transform.scale(
                     scale: _scaleAnimation.value,
@@ -102,14 +107,14 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       child: Icon(
                         Icons.local_pharmacy,
                         size: 120,
-                        color: Colors.white, // Couleur blanche
+                        color: Colors.white,
                       ),
                     ),
                   );
                 },
               ),
               SizedBox(height: 20),
-              // App title (en blanc)
+              // App title avec scale
               ScaleTransition(
                 scale: _scaleAnimation,
                 child: Text(
@@ -117,7 +122,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white, // Couleur blanche
+                    color: Colors.white,
                   ),
                   textAlign: TextAlign.center,
                 ),

@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-// Import des packages nécessaires
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class UpdateProfileScreen extends StatefulWidget {
   final Map<String, String> userData;
@@ -249,25 +252,52 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                     SizedBox(width: 15),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           if (_formKey.currentState!.validate()) {
-                            // Mise à jour des données du profil
-                            final updatedUserData = {
-                              "name": _nameController.text,
-                              "email": _emailController.text,
-                              "phone": _phoneController.text,
-                              "city": _selectedCity!,
-                              "role": widget.userData["role"], // Conserver le rôle
-                              "profileImage": widget.userData["profileImage"], // Conserver l'image existante
-                            };
+                            try {
+                              SharedPreferences prefs = await SharedPreferences.getInstance();
+                              int? userId = prefs.getInt("user_id");
 
-                            // Retour à l'écran précédent avec les données mises à jour
-                            Navigator.pop(context, updatedUserData);
+                              if (userId == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text("Erreur: Utilisateur non identifié")),
+                                );
+                                return;
+                              }
 
-                            // Affichage d'un message de confirmation
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("Profil mis à jour avec succès")),
-                            );
+                              final response = await http.post(
+                                Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+                                body: {
+                                  "action": "update_profile",
+                                  "id": userId.toString(),
+                                  "name": _nameController.text,
+                                  "email": _emailController.text,
+                                  "phone": _phoneController.text,
+                                  "city": _selectedCity!,
+                                },
+                              );
+
+                              final data = jsonDecode(response.body);
+                              if (data["success"]) {
+                                // Retournez TOUTES les données mises à jour
+                                Navigator.pop(context, {
+                                  "name": _nameController.text,
+                                  "email": _emailController.text,
+                                  "phone": _phoneController.text,
+                                  "city": _selectedCity!,
+                                  "role": widget.userData["role"]!,
+                                  "profileImage": widget.userData["profileImage"]!,
+                                });
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text("Erreur lors de la mise à jour")),
+                                );
+                              }
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text("Erreur: $e")),
+                              );
+                            }
                           }
                         },
                         style: ElevatedButton.styleFrom(

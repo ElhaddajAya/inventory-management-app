@@ -23,10 +23,18 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
     "profileImage": "assets/images/pills.png",
   };
 
+  bool isLoading = false;
+
+  // Dans initState
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    isLoading = true;
+    _loadUserData().then((_) {
+      setState(() {
+        isLoading = false;
+      });
+    });
   }
 
   Future<void> _loadUserData() async {
@@ -38,29 +46,56 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
       return;
     }
 
-    final response = await http.post(
-      Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
-      body: {
-        "action": "get_user",
-        "id": userId.toString(),
-      },
-    );
+    try {
+      final response = await http.post(
+        Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+        body: {
+          "action": "get_user",
+          "id": userId.toString(),
+        },
+      );
 
-    final data = jsonDecode(response.body);
-    if (data["success"]) {
-      final user = data["user"];
-      setState(() {
-        adminData = {
-          "name": user["full_name"] ?? "",
-          "email": user["email"] ?? "",
-          "phone": user["phone"] ?? "",
-          "role": user["role"] ?? "",
-          "city": user["city"] ?? "",
-          "profileImage": "assets/images/pills.png",
-        };
-      });
-    } else {
-      print("Erreur de chargement : ${data["message"]}");
+      // Vérifier le content-type
+      if (response.headers['content-type']?.contains('application/json') == false) {
+        throw FormatException("Réponse non JSON");
+      }
+
+      // Nettoyer la réponse avant le parsing
+      String cleanedResponse = response.body.trim();
+      if (cleanedResponse.startsWith('<br />')) {
+        cleanedResponse = cleanedResponse.substring(cleanedResponse.indexOf('{'));
+      }
+
+      final data = jsonDecode(cleanedResponse);
+
+      if (data["success"]) {
+        final user = data["user"];
+        setState(() {
+          adminData = {
+            "name": user["full_name"] ?? "",
+            "email": user["email"] ?? "",
+            "phone": user["phone"] ?? "",
+            "role": user["role"] ?? "",
+            "city": user["city"] ?? "",
+            "profileImage": "assets/images/pills.png",
+          };
+        });
+      } else {
+        print("Erreur de chargement : ${data["message"]}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erreur de chargement des données")),
+        );
+      }
+    } on FormatException catch (e) {
+      print("Erreur de format: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur de format des données reçues")),
+      );
+    } catch (e) {
+      print("Erreur: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur de connexion")),
+      );
     }
   }
 
@@ -75,7 +110,9 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
           backgroundColor: Colors.lightBlueAccent,
           foregroundColor: Colors.white,
         ),
-        body: Padding(
+        body: isLoading ?
+          Center(child: CircularProgressIndicator(color: Colors.lightBlueAccent))
+          : Padding(
             padding: EdgeInsets.all(20),
             child: Center(
               child: Column(
@@ -216,19 +253,28 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                                     shape: CircleBorder(),
                                   ),
                                   onPressed: () async {
-                                    // Naviguer vers l'écran de mise à jour du profil
-                                    final result = await Navigator.push(
+                                    // Ajoutez un await pour attendre le résultat
+                                    final updatedData = await Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => UpdateProfileScreen(userData: adminData),
                                       ),
                                     );
 
-                                    // Mettre à jour les données du profil si des modifications ont été effectuées
-                                    if (result != null && result is Map<String, String>) {
+                                    // Vérifiez si des données ont été retournées
+                                    if (updatedData != null && updatedData is Map<String, String>) {
+                                      // Forcez le rafraîchissement en rechargeant les données depuis l'API
                                       setState(() {
-                                        adminData = result;
+                                        isLoading = true;
                                       });
+                                      await _loadUserData();
+                                      setState(() {
+                                        isLoading = false;
+                                      });
+
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text("Profil mis à jour avec succès")),
+                                      );
                                     }
                                   },
                                   child: Icon(Icons.edit),
