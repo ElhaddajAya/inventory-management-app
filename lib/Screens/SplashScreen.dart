@@ -118,7 +118,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               ScaleTransition(
                 scale: _scaleAnimation,
                 child: Text(
-                  "Stock Manager",
+                  "Pharma Stock",
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,

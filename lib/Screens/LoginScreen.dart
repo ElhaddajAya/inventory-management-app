@@ -45,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(height: 20,),
                     // App title
                     Text(
-                      "Stock Manager",
+                      "Pharma Stock",
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
