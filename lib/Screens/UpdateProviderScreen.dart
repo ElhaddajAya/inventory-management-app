@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class UpdateProviderScreen extends StatefulWidget {
   final Map<String, String> provider;
@@ -200,23 +202,44 @@ class _UpdateProviderScreenState extends State<UpdateProviderScreen> {
                     SizedBox(width: 15),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            // Mise à jour de l'objet fournisseur
-                            final updatedProvider = {
-                              "name": _nameController.text,
-                              "email": _emailController.text,
-                              "phone": _phoneController.text,
-                              "city": _selectedCity,
-                            };
-
-                            // Retour à l'écran précédent avec le fournisseur mis à jour
-                            Navigator.pop(context, updatedProvider);
-
-                            // Affichage d'un message de confirmation
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("${_nameController.text} modifié avec succès")),
+                        onPressed: () async {
+                          if (_formKey.currentState!.validate() && _selectedCity != null) {
+                            final response = await http.post(
+                              Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+                              body: {
+                                "action": "update_provider",
+                                "id": widget.provider["id"].toString(),
+                                "name": _nameController.text,
+                                "email": _emailController.text,
+                                "phone": _phoneController.text,
+                                "city": _selectedCity!,
+                              },
                             );
+
+                            if (response.statusCode == 200) {
+                              final jsonResponse = jsonDecode(response.body);
+                              if (jsonResponse["success"] == true) {
+                                // Affichage du Snackbar de succès
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text("${_nameController.text} mis à jour avec succès")),
+                                );
+                                // Retourner avec les nouvelles valeurs
+                                Navigator.pop(context, {
+                                  "name": _nameController.text,
+                                  "email": _emailController.text,
+                                  "phone": _phoneController.text,
+                                  "city": _selectedCity!,
+                                });
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text("Erreur lors de la mise à jour")),
+                                );
+                              }
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text("Erreur serveur")),
+                              );
+                            }
                           }
                         },
                         style: ElevatedButton.styleFrom(
