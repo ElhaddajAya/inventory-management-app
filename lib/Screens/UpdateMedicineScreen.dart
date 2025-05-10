@@ -270,30 +270,20 @@ class _UpdateMedicineScreenState extends State<UpdateMedicineScreen> {
                         onPressed: () async {
                           if (_formKey.currentState!.validate()) {
                             try {
-                              // Préparer les données pour l'API
-                              final medicineData = {
-                                "id": widget.medicine["id"], // Assurez-vous d'avoir l'ID du médicament
-                                "name": _nameController.text,
-                                "stock": _stockController.text,
-                                "price": _priceController.text,
-                                "provider_id": _selectedProviderId,
-                              };
-                              // Appel à l'API pour mettre à jour
                               final response = await http.post(
                                 Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
                                 body: {
                                   "action": "update_medicine",
-                                  "id": medicineData["id"],
-                                  "name": medicineData["name"],
-                                  "stock": medicineData["stock"],
-                                  "price": medicineData["price"],
-                                  "provider_id": medicineData["provider_id"],
-                                  "category_id": widget.medicine["category_id"], // Ne pas oublier la catégorie
+                                  "id": widget.medicine["id"].toString(), // Conversion en String
+                                  "name": _nameController.text,
+                                  "stock": _stockController.text,
+                                  "price": _priceController.text,
+                                  "provider_id": _selectedProviderId,
+                                  "category_id": widget.medicine["category_id"].toString(), // Conversion en String
                                 },
                               );
+
                               if (response.statusCode == 200) {
-                                // Pour l'UI, construire l'objet medicine avec les données mises à jour
-                                // Trouver le nom du fournisseur sélectionné pour l'affichage
                                 String providerName = "Inconnu";
                                 if (_selectedProviderId != null) {
                                   final selectedProvider = _providers.firstWhere(
@@ -311,21 +301,14 @@ class _UpdateMedicineScreenState extends State<UpdateMedicineScreen> {
                                   "provider_id": _selectedProviderId,
                                   "provider": providerName,
                                 };
-                                // Retour à l'écran précédent avec succès
+
                                 Navigator.pop(context, updatedMedicine);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(content: Text("${_nameController.text} modifié avec succès")),
                                 );
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text("Erreur lors de la mise à jour du médicament")),
-                                );
                               }
                             } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text("Erreur: $e")),
-                              );
-                              print(e);
+                              print("Erreur lors de la mise à jour: $e");
                             }
                           }
                         },

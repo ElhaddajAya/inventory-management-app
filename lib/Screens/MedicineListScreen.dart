@@ -37,14 +37,15 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
       List data = jsonDecode(response.body);
       setState(() {
         medicines = data.map<Map<String, dynamic>>((item) => {
-          "id": item["id"], // Assurez-vous d'inclure l'ID du médicament
+          "id": item["id"].toString(), // Conversion en String
           "name": item["name"],
           "category": widget.categoryName,
           "stock": item["stock"] ?? 0,
           "price": item["price"] ?? 0.0,
           "image": 'assets/images/pills.png',
           "provider": item["provider"] ?? "Inconnu",
-          "provider_id": item["provider_id"], // Inclure également l'ID du fournisseur
+          "provider_id": item["provider_id"]?.toString() ?? "", // Conversion en String
+          "category_id": widget.categoryId, // Ajout de category_id comme String
         }).toList();
         isLoading = false;
       });
@@ -62,7 +63,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
         Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
         body: {
           "action": "delete_medicine",
-          "id": medicineId,
+          "id": medicineId.toString(),
         },
       );
 
@@ -101,7 +102,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
               onPressed: () {
                 Navigator.pop(context);
                 // Appeler la fonction de suppression
-                _deleteMedicine(medicine["id"], medicine["name"]);
+                _deleteMedicine(medicine["id"].toString(), medicine["name"]);
               },
               child: Text("Supprimer", style: TextStyle(color: Colors.red)),
             ),
