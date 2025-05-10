@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:pharmacy_stock_management_app/Screens/AddProviderScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/UpdateProviderScreen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProviderlistScreen extends StatefulWidget {
   @override
@@ -17,6 +18,17 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
   void initState() {
     super.initState();
     fetchProviders();
+  }
+
+  void _callProvider(String phone) async {
+    final Uri phoneUri = Uri(scheme: 'tel', path: phone);
+    if (await canLaunchUrl(phoneUri)) {
+      await launchUrl(phoneUri);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Impossible de lancer l'appel")),
+      );
+    }
   }
 
   Future<void> fetchProviders() async {
@@ -136,7 +148,11 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
           itemCount: fournisseurs.length,
           itemBuilder: (context, index) {
             final fourniss = fournisseurs[index];
-            return Card(
+            return GestureDetector(
+                onLongPress: () {
+              _showProviderOptions(fourniss["name"], fourniss["phone"]);
+            },
+            child: Card(
                 margin: EdgeInsets.symmetric(vertical: 5),
                 color: Colors.white,
                 elevation: 4,
@@ -244,7 +260,8 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
                       ),
                     ],
                   ),
-                ));
+                ))
+            );
           },
         ),
       ),
@@ -264,6 +281,38 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
           }
         },
       ),
+    );
+  }
+
+  void _showProviderOptions(String name, String phone) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                name,
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              ListTile(
+                leading: Icon(Icons.phone, color: Colors.lightBlueAccent),
+                title: Text("Contacter le fournisseur"),
+                onTap: () {
+                  Navigator.pop(context);
+                  _callProvider(phone);
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
