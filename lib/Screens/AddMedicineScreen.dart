@@ -1,23 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class AddMedicineScreen extends StatefulWidget {
-  final String category; // Catégorie préalablement sélectionnée
+  final String category;
+  final String categoryId; // Ajout de l'ID
 
-  AddMedicineScreen({required this.category});
+  AddMedicineScreen({required this.category, required this.categoryId});
 
   @override
   _AddMedicineScreenState createState() => _AddMedicineScreenState();
 }
 
 class _AddMedicineScreenState extends State<AddMedicineScreen> {
-  // Contrôleurs pour les champs du formulaire
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _stockController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
 
   // Liste des fournisseurs disponibles
-  final List<String> _providers = ["PharmaPlus", "MediPharm", "BioHealth"];
-  String? _selectedProvider;
+  final List<Map<String, dynamic>> _providers = []; // Liste vide initialement
+  String? _selectedProviderId;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProviders();
+  }
+
+  Future<void> _fetchProviders() async {
+    final response = await http.post(
+      Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+      body: {"action": "list_providers"},
+    );
+
+    if (response.statusCode == 200) {
+      List data = jsonDecode(response.body);
+      setState(() {
+        _providers.clear();
+        _providers.addAll(data.map<Map<String, dynamic>>((item) => {
+          "id": item["id"],  // L'ID du fournisseur
+          "name": item["name"],  // Nom du fournisseur
+        }).toList());
+      });
+    } else {
+      print("Erreur lors de la récupération des fournisseurs");
+    }
+  }
 
   // Clé pour la validation du formulaire
   final _formKey = GlobalKey<FormState>();
@@ -149,32 +177,29 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
 
                 // Menu déroulant pour le fournisseur
                 DropdownButtonFormField<String>(
-                  value: _selectedProvider,
+                  value: _selectedProviderId,
+                  dropdownColor: Colors.white,
                   decoration: InputDecoration(
                     labelText: "Fournisseur",
                     labelStyle: TextStyle(color: Colors.lightBlueAccent),
                     prefixIcon: Icon(Icons.store, color: Colors.lightBlueAccent),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(color: Colors.lightBlueAccent, width: 2),
                     ),
-                    // Ajout d'une couleur de fond blanche
                     fillColor: Colors.white,
                     filled: true,
                   ),
-                  dropdownColor: Colors.white, // Couleur de fond du menu déroulant
-                  items: _providers.map((String provider) {
+                  items: _providers.map((provider) {
                     return DropdownMenuItem<String>(
-                      value: provider,
-                      child: Text(provider),
+                      value: provider['id'].toString(),  // Utilisation de l'ID du fournisseur
+                      child: Text(provider['name']),  // Affichage du nom du fournisseur
                     );
                   }).toList(),
                   onChanged: (String? newValue) {
                     setState(() {
-                      _selectedProvider = newValue;
+                      _selectedProviderId = newValue;
                     });
                   },
                   validator: (value) {
@@ -213,25 +238,41 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                     SizedBox(width: 15),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           if (_formKey.currentState!.validate()) {
-                            // Création d'un nouvel objet médicament
                             final newMedicine = {
                               "name": _nameController.text,
-                              "category": widget.category,
+                              "category_id": widget.category,  // Assurez-vous d'envoyer l'ID de la catégorie
                               "stock": int.parse(_stockController.text),
                               "price": double.parse(_priceController.text),
-                              "provider": _selectedProvider,
-                              "image": 'assets/images/pills.png',
+                              "provider_id": _selectedProviderId,  // L'ID du fournisseur sélectionné
                             };
 
-                            // Retour à l'écran précédent avec le nouveau médicament
-                            Navigator.pop(context, newMedicine);
-
-                            // Affichage d'un message de confirmation
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("${_nameController.text} ajouté avec succès")),
+                            // Envoi des données vers l'API pour ajouter le médicament
+                            final response = await http.post(
+                              Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+                              body: {
+                                "action": "add_medicine",
+                                "name": newMedicine["name"],
+                                "category_id": widget.categoryId,
+                                "stock": newMedicine["stock"].toString(),
+                                "price": newMedicine["price"].toString(),
+                                "provider_id": newMedicine["provider_id"],
+                              },
                             );
+
+                            if (response.statusCode == 200) {
+                              // Si l'ajout est réussi, retour à l'écran précédent
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text("${_nameController.text} ajouté avec succès")),
+                              );
+                            } else {
+                              // Si l'ajout échoue
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text("Erreur lors de l'ajout du médicament")),
+                              );
+                            }
                           }
                         },
                         style: ElevatedButton.styleFrom(
@@ -244,9 +285,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                         ),
                         child: Text(
                           "AJOUTER",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),

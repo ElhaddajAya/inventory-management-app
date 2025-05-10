@@ -244,8 +244,10 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
           final newMedicine = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  AddMedicineScreen(category: widget.categoryName),
+              builder: (context) => AddMedicineScreen(
+                category: widget.categoryName,
+                categoryId: widget.categoryId, // On passe aussi l’ID ici
+              ),
             ),
           );
           if (newMedicine != null) {
