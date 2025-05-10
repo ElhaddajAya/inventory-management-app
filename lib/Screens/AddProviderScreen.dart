@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class AddProviderScreen extends StatefulWidget {
   @override
@@ -188,23 +190,36 @@ class _AddProviderScreenState extends State<AddProviderScreen> {
                     SizedBox(width: 15),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           if (_formKey.currentState!.validate()) {
-                            // Création d'un nouvel objet fournisseur
-                            final newProvider = {
-                              "name": _nameController.text,
-                              "email": _emailController.text,
-                              "phone": _phoneController.text,
-                              "city": _selectedCity,
-                            };
-
-                            // Retour à l'écran précédent avec le nouveau fournisseur
-                            Navigator.pop(context, newProvider);
-
-                            // Affichage d'un message de confirmation
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("${_nameController.text} ajouté avec succès")),
+                            final response = await http.post(
+                              Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+                              body: {
+                                "action": "add_provider",
+                                "name": _nameController.text,
+                                "email": _emailController.text,
+                                "phone": _phoneController.text,
+                                "city": _selectedCity ?? '',
+                              },
                             );
+
+                            if (response.statusCode == 200) {
+                              final result = jsonDecode(response.body);
+                              if (result["success"] == true) {
+                                Navigator.pop(context, true);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text("${_nameController.text} ajouté avec succès")),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text("Erreur lors de l'ajout du fournisseur.")),
+                                );
+                              }
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text("Erreur serveur (${response.statusCode})")),
+                              );
+                            }
                           }
                         },
                         style: ElevatedButton.styleFrom(

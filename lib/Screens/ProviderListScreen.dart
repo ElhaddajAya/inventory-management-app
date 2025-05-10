@@ -240,22 +240,19 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.lightBlueAccent,
+        child: Icon(Icons.add, color: Colors.white),
         onPressed: () async {
-          final newProvider = await Navigator.push(
+          // Attend le retour de AddProviderScreen
+          final result = await Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => AddProviderScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => AddProviderScreen()),
           );
 
-          if (newProvider != null) {
-            setState(() {
-              fournisseurs.add(newProvider);
-            });
+          // Si le fournisseur a été ajouté, on recharge la liste
+          if (result == true) {
+            fetchProviders();
           }
         },
-        child: Icon(Icons.add),
-        foregroundColor: Colors.white,
       ),
     );
   }
