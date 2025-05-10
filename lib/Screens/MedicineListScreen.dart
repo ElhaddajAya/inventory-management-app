@@ -36,14 +36,15 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
     if (response.statusCode == 200) {
       List data = jsonDecode(response.body);
       setState(() {
-        medicines = data.map<Map<String, dynamic>>((item) =>
-        {
+        medicines = data.map<Map<String, dynamic>>((item) => {
+          "id": item["id"], // Assurez-vous d'inclure l'ID du médicament
           "name": item["name"],
           "category": widget.categoryName,
           "stock": item["stock"] ?? 0,
           "price": item["price"] ?? 0.0,
           "image": 'assets/images/pills.png',
           "provider": item["provider"] ?? "Inconnu",
+          "provider_id": item["provider_id"], // Inclure également l'ID du fournisseur
         }).toList();
         isLoading = false;
       });
@@ -55,27 +56,52 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
     }
   }
 
-  void _showDeleteConfirmation(BuildContext context, String medicineName) {
+  Future<void> _deleteMedicine(String medicineId, String medicineName) async {
+    try {
+      final response = await http.post(
+        Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+        body: {
+          "action": "delete_medicine",
+          "id": medicineId,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Rafraîchir la liste après la suppression
+        fetchMedicines();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("$medicineName supprimé avec succès")),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erreur lors de la suppression du médicament")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur de connexion: $e")),
+      );
+    }
+  }
+
+  void _showDeleteConfirmation(BuildContext context, Map<String, dynamic> medicine) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("Supprimer $medicineName ?"),
+          title: Text("Supprimer ${medicine['name']} ?"),
           backgroundColor: Colors.white,
           content: Text("Êtes-vous sûr de vouloir supprimer ce médicament ?"),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(
-                  "Annuler", style: TextStyle(color: Colors.lightBlueAccent)),
+              child: Text("Annuler", style: TextStyle(color: Colors.lightBlueAccent)),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                // Ici, tu peux ajouter la logique de suppression depuis la BDD
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("$medicineName supprimé")),
-                );
+                // Appeler la fonction de suppression
+                _deleteMedicine(medicine["id"], medicine["name"]);
               },
               child: Text("Supprimer", style: TextStyle(color: Colors.red)),
             ),
@@ -206,18 +232,15 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                           icon: Icon(Icons.edit),
                           color: Colors.lightBlueAccent,
                           onPressed: () async {
-                            final updateMedicine = await Navigator.push(
+                            final updatedMedicine = await Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    UpdateMedicineScreen(medicine: medicine),
+                                builder: (context) => UpdateMedicineScreen(medicine: medicine),
                               ),
                             );
-                            if (updateMedicine != null) {
-                              setState(() {
-                                medicines[medicines.indexOf(medicine)] =
-                                    updateMedicine;
-                              });
+                            if (updatedMedicine != null) {
+                              // Pas besoin d'une mise à jour locale, actualiser depuis l'API
+                              fetchMedicines();
                             }
                           },
                         ),
@@ -225,7 +248,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                           icon: Icon(Icons.delete),
                           color: Colors.red,
                           onPressed: () {
-                            _showDeleteConfirmation(context, medicine["name"]);
+                            _showDeleteConfirmation(context, medicine);
                           },
                         ),
                       ],
