@@ -4,6 +4,7 @@ import 'package:pharmacy_stock_management_app/Screens/HomeScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/LoginScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/MyAccountScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/ProviderListScreen.dart';
+import 'package:pharmacy_stock_management_app/Screens/SplashScreen.dart';
 
 void main() {
   runApp(MyApp());
@@ -15,7 +16,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       // home: HomePage(),
-      home: LoginScreen(),  // Change ici la page d'accueil pour LoginScreen
+      // home: LoginScreen(),  // Change ici la page d'accueil pour LoginScreen
+      home: SplashScreen(),  // Nouvelle page d'accueil (SplashScreen)
     );
   }
 }
