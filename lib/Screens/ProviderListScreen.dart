@@ -67,12 +67,22 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
       );
 
       if (response.statusCode == 200) {
-        setState(() {
-          fournisseurs.removeAt(index);
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("$providerName supprimé")),
-        );
+        final jsonResponse = jsonDecode(response.body);
+        if (jsonResponse["success"] == true) {
+          setState(() {
+            fournisseurs.removeAt(index);
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("$providerName supprimé")),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(jsonResponse["message"] ?? "Impossible de supprimer le fournisseur."),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Erreur lors de la suppression")),
