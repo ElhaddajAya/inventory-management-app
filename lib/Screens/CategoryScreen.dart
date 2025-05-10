@@ -103,7 +103,9 @@ class _CategoryScreen extends State<CategoryScreen> {
         foregroundColor: Colors.white,
       ),
       body: isLoading
-          ? Center(child: Text("Chargement...", style: TextStyle(fontSize: 17),))
+          ? Center(
+            child: CircularProgressIndicator(color: Colors.lightBlueAccent),
+          )
           : Padding(
         padding: EdgeInsets.all(10),
         child: GridView.builder(

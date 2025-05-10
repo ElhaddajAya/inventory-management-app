@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:pharmacy_stock_management_app/Screens/AddProviderScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/UpdateProviderScreen.dart';
 
@@ -8,12 +10,80 @@ class ProviderlistScreen extends StatefulWidget {
 }
 
 class _ProviderlistScreenState extends State<ProviderlistScreen> {
-  // Liste des fournisseurs (convertie en State pour pouvoir la modifier)
-  final List<Map<String, String>> fournisseurs = [
-    {"name": "PharmaPlus", "email": "contact@pharmaplus.com", "phone": "0111113124", "city": "Rabat"},
-    {"name": "MediStock", "email": "info@medistock.com", "phone": "0111113948", "city": "Kénitra"},
-    {"name": "BioHealth", "email": "support@biohealth.com", "phone": "0111119871", "city": "Safi"},
-  ];
+  List<Map<String, dynamic>> fournisseurs = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchProviders();
+  }
+
+  Future<void> fetchProviders() async {
+    try {
+      final response = await http.post(
+        Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+        body: {"action": "list_providers"},
+      );
+
+      if (response.statusCode == 200) {
+        List data = jsonDecode(response.body);
+        setState(() {
+          fournisseurs = data.map<Map<String, dynamic>>((item) => {
+            "id": item["id"].toString(),
+            "name": item["name"],
+            "email": item["email"],
+            "phone": item["phone"],
+            "city": item["city"],
+          }).toList();
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erreur lors du chargement des fournisseurs")),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur de connexion: $e")),
+      );
+    }
+  }
+
+  Future<void> _deleteProvider(String providerId, String providerName, int index) async {
+    try {
+      final response = await http.post(
+        Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+        body: {
+          "action": "delete_provider",
+          "id": providerId,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          fournisseurs.removeAt(index);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("$providerName supprimé")),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erreur lors de la suppression")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur: $e")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +99,11 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
       ),
       body: Padding(
         padding: EdgeInsets.all(10),
-        child: fournisseurs.isEmpty
+        child: isLoading
+            ? Center(
+              child: CircularProgressIndicator(color: Colors.lightBlueAccent),
+            )
+            : fournisseurs.isEmpty
             ? Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -53,18 +127,16 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
           itemBuilder: (context, index) {
             final fourniss = fournisseurs[index];
             return Card(
-                margin: EdgeInsets.symmetric(vertical: 5), // Espacement entre chaque carte
+                margin: EdgeInsets.symmetric(vertical: 5),
                 color: Colors.white,
                 elevation: 4,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)
-                ),
+                    borderRadius: BorderRadius.circular(10)),
                 child: Padding(
                   padding: EdgeInsets.all(15),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Icône arrondie du magasin
                       Container(
                         width: 60,
                         height: 60,
@@ -75,7 +147,6 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
                         child: Icon(Icons.store, size: 30, color: Colors.orange),
                       ),
                       SizedBox(width: 15),
-                      // Détails du fournisseur
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -86,8 +157,8 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
                           SizedBox(height: 5),
                           Row(
                             children: [
-                              Icon(Icons.location_on, size: 13, color: Colors.grey,),
-                              SizedBox(width: 5,),
+                              Icon(Icons.location_on, size: 13, color: Colors.grey),
+                              SizedBox(width: 5),
                               Text(
                                 "${fourniss["city"]}",
                                 style: TextStyle(fontSize: 13, color: Colors.grey),
@@ -98,21 +169,21 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
                           Row(
                             children: [
                               Icon(Icons.email, size: 13),
-                              SizedBox(width: 5,),
+                              SizedBox(width: 5),
                               Text(
                                 "${fourniss["email"]}",
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, ),
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                               )
                             ],
                           ),
                           SizedBox(height: 5),
                           Row(
                             children: [
-                              Icon(Icons.phone, size: 13,),
-                              SizedBox(width: 5,),
+                              Icon(Icons.phone, size: 13),
+                              SizedBox(width: 5),
                               Text(
                                 "${fourniss["phone"]}",
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, ),
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                               )
                             ],
                           ),
@@ -126,18 +197,28 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
                             icon: Icon(Icons.edit),
                             color: Colors.lightBlueAccent,
                             onPressed: () async {
-                              // Navigation vers l'écran de mise à jour du fournisseur
                               final updatedProvider = await Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => UpdateProviderScreen(provider: fourniss),
+                                  builder: (context) => UpdateProviderScreen(provider: {
+                                    "name": fourniss["name"],
+                                    "email": fourniss["email"],
+                                    "phone": fourniss["phone"],
+                                    "city": fourniss["city"],
+                                    "id": fourniss["id"],
+                                  }),
                                 ),
                               );
 
-                              // Si un fournisseur mis à jour est retourné, mettre à jour la liste
                               if (updatedProvider != null) {
                                 setState(() {
-                                  fournisseurs[index] = updatedProvider;
+                                  fournisseurs[index] = {
+                                    ...fourniss,
+                                    "name": updatedProvider["name"],
+                                    "email": updatedProvider["email"],
+                                    "phone": updatedProvider["phone"],
+                                    "city": updatedProvider["city"],
+                                  };
                                 });
                               }
                             },
@@ -146,22 +227,20 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
                             icon: Icon(Icons.delete),
                             color: Colors.red,
                             onPressed: () {
-                              _showDeleteConfirmation(context, fourniss["name"]!, index);
+                              _showDeleteConfirmation(context, fourniss["name"], index);
                             },
                           ),
                         ],
                       ),
                     ],
                   ),
-                )
-            );
+                ));
           },
         ),
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.lightBlueAccent,
         onPressed: () async {
-          // Navigation vers l'écran d'ajout de fournisseur
           final newProvider = await Navigator.push(
             context,
             MaterialPageRoute(
@@ -169,7 +248,6 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
             ),
           );
 
-          // Si un nouveau fournisseur est retourné, l'ajouter à la liste
           if (newProvider != null) {
             setState(() {
               fournisseurs.add(newProvider);
@@ -193,18 +271,12 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text("Annuler", style: TextStyle(color: Colors.lightBlueAccent),),
+              child: Text("Annuler", style: TextStyle(color: Colors.lightBlueAccent)),
             ),
             TextButton(
               onPressed: () {
-                setState(() {
-                  // Supprimer le fournisseur de la liste
-                  fournisseurs.removeAt(index);
-                });
+                _deleteProvider(fournisseurs[index]["id"], fournissName, index);
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("$fournissName supprimé")),
-                );
               },
               child: Text("Supprimer", style: TextStyle(color: Colors.red)),
             ),
