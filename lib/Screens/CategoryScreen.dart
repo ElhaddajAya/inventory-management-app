@@ -117,8 +117,13 @@ class _CategoryScreen extends State<CategoryScreen> {
             return GestureDetector(
               onTap: () {
                 Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => MedicineListScreen(category: categories[index]["name"]))
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MedicineListScreen(
+                      categoryId: categories[index]["id"], // <-- ID au lieu du nom
+                      categoryName: categories[index]["name"], // (facultatif) si tu veux l'afficher dans l'AppBar
+                    ),
+                  ),
                 );
               },
               onLongPress: () {
@@ -239,6 +244,4 @@ class _CategoryScreen extends State<CategoryScreen> {
       );
     }
   }
-
-
 }

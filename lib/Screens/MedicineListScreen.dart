@@ -1,47 +1,99 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:pharmacy_stock_management_app/Screens/AddMedicineScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/UpdateMedicineScreen.dart';
 
 class MedicineListScreen extends StatefulWidget {
-  final String category; // Var. pour stocker la catégorie séléctionnée
+  final String categoryId;
+  final String categoryName;
 
-  MedicineListScreen({required this.category});
+  MedicineListScreen({required this.categoryId, required this.categoryName});
 
   @override
   _MedicineListScreenState createState() => _MedicineListScreenState();
 }
 
 class _MedicineListScreenState extends State<MedicineListScreen> {
-  final List<Map<String, dynamic>> medicines = [
-    {
-      "name": "Amoxicilline",
-      "category": "Antibiotiques",
-      "stock": 20,
-      "price": 50.0,
-      "image": 'assets/images/pills.png',
-      "provider": "PharmaPlus"
-    },
-    {
-      "name": "Ibuprofène",
-      "category": "Antalgiques",
-      "stock": 10,
-      "price": 30.0,
-      "image": 'assets/images/pills.png',
-      "provider": "MediPharm"
+  List<Map<String, dynamic>> medicines = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchMedicines();
+  }
+
+  Future<void> fetchMedicines() async {
+    final response = await http.post(
+      Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+      body: {
+        "action": "list_medicines_by_category",
+        "category_id": widget.categoryId,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      List data = jsonDecode(response.body);
+      setState(() {
+        medicines = data.map<Map<String, dynamic>>((item) =>
+        {
+          "name": item["name"],
+          "category": widget.categoryName,
+          "stock": item["stock"] ?? 0,
+          "price": item["price"] ?? 0.0,
+          "image": 'assets/images/pills.png',
+          "provider": item["provider"] ?? "Inconnu",
+        }).toList();
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+      print("Erreur lors du chargement des médicaments");
     }
-  ];
+  }
+
+  void _showDeleteConfirmation(BuildContext context, String medicineName) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Supprimer $medicineName ?"),
+          backgroundColor: Colors.white,
+          content: Text("Êtes-vous sûr de vouloir supprimer ce médicament ?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                  "Annuler", style: TextStyle(color: Colors.lightBlueAccent)),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                // Ici, tu peux ajouter la logique de suppression depuis la BDD
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("$medicineName supprimé")),
+                );
+              },
+              child: Text("Supprimer", style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Filtrer les médicaments en fonction de la catégorie sélectionnée
-    List<Map<String, dynamic>> filteredMedicines =
-    medicines.where((med) => med["category"] == widget.category).toList();
+    final filteredMedicines = medicines;
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          "Produits - ${widget.category}",
+          "Produits - ${widget.categoryName}",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.lightBlueAccent,
@@ -49,145 +101,153 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
       ),
       body: Padding(
         padding: EdgeInsets.all(10),
-        child: filteredMedicines.length <= 0 // Verifier c'est la liste des médicaments filtrés est vide
+        child: isLoading
             ? Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "Aucun médicament de catégorie ${widget.category} n'est disponible.",
+            child: CircularProgressIndicator(color: Colors.lightBlueAccent))
+            : filteredMedicines.isEmpty
+            ? Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  "Aucun médicament de catégorie ${widget
+                      .categoryName} n'est disponible.",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 15),
                 ),
-                SizedBox(height: 20,),
-                Image(
-                  image: AssetImage("assets/images/pills.png"),
-                  width: 40,
-                )
-              ],
-            )
+              ),
+              SizedBox(height: 20),
+              Image.asset(
+                "assets/images/pills.png",
+                width: 40,
+              ),
+            ],
+          ),
         )
             : ListView.builder(
           itemCount: filteredMedicines.length,
           itemBuilder: (context, index) {
-            final medicine = filteredMedicines[index]; // Récuppérer chaque médicament
+            final medicine = filteredMedicines[index];
             return Card(
-                margin: EdgeInsets.symmetric(vertical: 5), // Espacement entre chaque carte
-                color: Colors.white,
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)
-                ),
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(20, 15, 15, 15),
-                  child: Row(
-                    children: [
-                      Image.asset(
-                        medicine["image"],
-                        width: 50,
-                        fit: BoxFit.cover,
-                      ),
-                      SizedBox(width: 20),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              medicine["name"],
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                            SizedBox(height: 5),
-                            Row(
-                              children: [
-                                Icon(Icons.category, size: 15, color: Colors.grey),
-                                SizedBox(width: 5),
-                                Text(
-                                  "${medicine["category"]}",
-                                  style: TextStyle(
-                                      fontSize: 15, color: Colors.grey),
-                                ),
-                                Spacer(),
-                                Icon(Icons.production_quantity_limits, size: 15),
-                                SizedBox(width: 5),
-                                Text(
-                                  "${medicine["stock"]}",
-                                  style: TextStyle(
-                                      fontSize: 15, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 5),
-                            Row(
-                              children: [
-                                Icon(Icons.store, size: 15),
-                                SizedBox(width: 5),
-                                Text(
-                                  "${medicine["provider"]}",
-                                  style: TextStyle(
-                                      fontSize: 15, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 5),
-                            Text(
-                              "${medicine["price"]} DH",
-                              style: TextStyle(
-                                  fontSize: 15, fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(width: 10,),
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
+              margin: EdgeInsets.symmetric(vertical: 5),
+              color: Colors.white,
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(20, 15, 15, 15),
+                child: Row(
+                  children: [
+                    Image.asset(
+                      medicine["image"],
+                      width: 50,
+                      fit: BoxFit.cover,
+                    ),
+                    SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          IconButton(
-                            icon: Icon(Icons.edit),
-                            color: Colors.lightBlueAccent,
-                            onPressed: () async {
-                              final updateMedicine = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => UpdateMedicineScreen(medicine: medicine)
-                                  )
-                              );
-                              if(updateMedicine != null) {
-                                setState(() {
-                                  // Mettre à jour la liste des médicaments avec les nouvelles données
-                                  medicines[medicines.indexOf(medicine)] = updateMedicine;
-                                });
-                              }
-                            },
+                          Text(
+                            medicine["name"],
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
                           ),
-                          IconButton(
-                            icon: Icon(Icons.delete),
-                            color: Colors.red,
-                            onPressed: () {
-                              _showDeleteConfirmation(context, medicine["name"]);
-                            },
+                          SizedBox(height: 5),
+                          Row(
+                            children: [
+                              Icon(
+                                  Icons.category, size: 15, color: Colors.grey),
+                              SizedBox(width: 5),
+                              Text(
+                                "${medicine["category"]}",
+                                style: TextStyle(
+                                    fontSize: 15, color: Colors.grey),
+                              ),
+                              Spacer(),
+                              Icon(Icons.production_quantity_limits, size: 15),
+                              SizedBox(width: 5),
+                              Text(
+                                "${medicine["stock"]}",
+                                style: TextStyle(
+                                    fontSize: 15, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 5),
+                          Row(
+                            children: [
+                              Icon(Icons.store, size: 15),
+                              SizedBox(width: 5),
+                              Text(
+                                "${medicine["provider"]}",
+                                style: TextStyle(
+                                    fontSize: 15, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            "${medicine["price"]} DH",
+                            style: TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                )
+                    ),
+                    SizedBox(width: 10),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit),
+                          color: Colors.lightBlueAccent,
+                          onPressed: () async {
+                            final updateMedicine = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    UpdateMedicineScreen(medicine: medicine),
+                              ),
+                            );
+                            if (updateMedicine != null) {
+                              setState(() {
+                                medicines[medicines.indexOf(medicine)] =
+                                    updateMedicine;
+                              });
+                            }
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          color: Colors.red,
+                          onPressed: () {
+                            _showDeleteConfirmation(context, medicine["name"]);
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             );
           },
         ),
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.lightBlueAccent,
+        foregroundColor: Colors.white,
         onPressed: () async {
-          // Navigation vers l'écran d'ajout de médicament en passant la catégorie
           final newMedicine = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => AddMedicineScreen(category: widget.category),
+              builder: (context) =>
+                  AddMedicineScreen(category: widget.categoryName),
             ),
           );
-
-          // Si un nouveau médicament est retourné, l'ajouter à la liste
           if (newMedicine != null) {
             setState(() {
               medicines.add(newMedicine);
@@ -195,37 +255,8 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
           }
         },
         child: Icon(Icons.add),
-        foregroundColor: Colors.white,
       ),
     );
   }
 
-  // Fonction pour afficher une boîte de dialogue de confirmation avant suppression
-  void _showDeleteConfirmation(BuildContext context, String medicineName) {
-    showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("Supprimer $medicineName ?"),
-            backgroundColor: Colors.white,
-            content: Text("Êtes-vous sûr de vouloir supprimer ce médicament ?"),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context), // Annuler
-                child: Text("Annuler", style: TextStyle(color: Colors.lightBlueAccent),),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // Fermer la boîte de dialogue"
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("$medicineName supprimé")),
-                  );
-                },
-                child: Text("Supprimer", style: TextStyle(color: Colors.red)),
-              )
-            ],
-          );
-        }
-    );
-  }
 }
