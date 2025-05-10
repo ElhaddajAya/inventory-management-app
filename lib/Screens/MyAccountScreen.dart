@@ -1,7 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:pharmacy_stock_management_app/Screens/LoginScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/UpdateProfileScreen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MyAccountScreen extends StatefulWidget {
   @override
@@ -9,15 +14,55 @@ class MyAccountScreen extends StatefulWidget {
 }
 
 class _MyAccountScreenState extends State<MyAccountScreen> {
-  // Données administrateur (à convertir en state pour pouvoir les mettre à jour)
   Map<String, String> adminData = {
-    "name": "Claire Jackson",
-    "email": "admin@epharmacy.com",
-    "phone": "+02 82498270",
-    "role": "Administrateur",
-    "city": "Casablanca",
-    "profileImage": "assets/images/pills.png", // Laisser vide si pas d'image
+    "name": "",
+    "email": "",
+    "phone": "",
+    "role": "",
+    "city": "",
+    "profileImage": "assets/images/pills.png",
   };
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int? userId = prefs.getInt("user_id");
+
+    if (userId == null) {
+      print("Aucun ID trouvé");
+      return;
+    }
+
+    final response = await http.post(
+      Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+      body: {
+        "action": "get_user",
+        "id": userId.toString(),
+      },
+    );
+
+    final data = jsonDecode(response.body);
+    if (data["success"]) {
+      final user = data["user"];
+      setState(() {
+        adminData = {
+          "name": user["full_name"] ?? "",
+          "email": user["email"] ?? "",
+          "phone": user["phone"] ?? "",
+          "role": user["role"] ?? "",
+          "city": user["city"] ?? "",
+          "profileImage": "assets/images/pills.png",
+        };
+      });
+    } else {
+      print("Erreur de chargement : ${data["message"]}");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +99,7 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    adminData["role"]!,
+                    adminData["role"]! == "admin" ? "Admnistrateur" : "Utilisateur",
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                   SizedBox(height: 15,),

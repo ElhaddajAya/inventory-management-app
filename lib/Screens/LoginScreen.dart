@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:pharmacy_stock_management_app/Screens/HomeScreen.dart';
 import 'package:pharmacy_stock_management_app/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -234,25 +235,24 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse("http://192.168.1.6/pharmacy_api/api.php"), // ⚠️ mets l'adresse exacte de ton fichier PHP
+        Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
         body: {
-          "action": "login", // ✅ INDISPENSABLE
+          "action": "login",
           "email": email,
           "password": password,
         },
       );
 
-      print("Réponse brute : ${response.body}");
-
       final data = jsonDecode(response.body);
 
-      // Vérification que la réponse contient la clé "status" et qu'elle est égale à "success"
       if (data["status"] == "success") {
-        // Vous pouvez ajouter une vérification des données spécifiques comme l'ID et le nom
-        final fullName = data["full_name"] ?? "Nom inconnu"; // Si 'full_name' est null, on affecte une valeur par défaut
-        final role = data["role"] ?? "Rôle inconnu"; // Si 'role' est null, on affecte une valeur par défaut
+        final id = data["id"];
+        final fullName = data["full_name"] ?? "Nom inconnu";
+        final role = data["role"] ?? "Rôle inconnu";
 
-        print("Utilisateur connecté : $fullName, Rôle : $role");
+        // 🔐 Stocker l'ID dans SharedPreferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setInt("user_id", id);
 
         Navigator.pushReplacement(
           context,
