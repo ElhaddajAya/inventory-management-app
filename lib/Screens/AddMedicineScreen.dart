@@ -242,10 +242,10 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                           if (_formKey.currentState!.validate()) {
                             final newMedicine = {
                               "name": _nameController.text,
-                              "category_id": widget.category,  // Assurez-vous d'envoyer l'ID de la catégorie
+                              "category_id": widget.categoryId,
                               "stock": int.parse(_stockController.text),
                               "price": double.parse(_priceController.text),
-                              "provider_id": _selectedProviderId,  // L'ID du fournisseur sélectionné
+                              "provider_id": _selectedProviderId,
                             };
 
                             // Envoi des données vers l'API pour ajouter le médicament
@@ -262,13 +262,12 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                             );
 
                             if (response.statusCode == 200) {
-                              // Si l'ajout est réussi, retour à l'écran précédent
+                              // Simplement retourner à l'écran précédent sans passer de données
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text("${_nameController.text} ajouté avec succès")),
                               );
                             } else {
-                              // Si l'ajout échoue
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text("Erreur lors de l'ajout du médicament")),
                               );

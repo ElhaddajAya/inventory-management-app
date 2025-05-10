@@ -241,20 +241,17 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
         backgroundColor: Colors.lightBlueAccent,
         foregroundColor: Colors.white,
         onPressed: () async {
-          final newMedicine = await Navigator.push(
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => AddMedicineScreen(
                 category: widget.categoryName,
-                categoryId: widget.categoryId, // On passe aussi l’ID ici
+                categoryId: widget.categoryId,
               ),
             ),
           );
-          if (newMedicine != null) {
-            setState(() {
-              medicines.add(newMedicine);
-            });
-          }
+          // Rafraîchir la liste après être revenu de l'écran d'ajout
+          fetchMedicines();
         },
         child: Icon(Icons.add),
       ),
