@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:pharmacy_stock_management_app/Screens/AllMedicinesScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/OutOfStockScreen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -197,11 +198,18 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildStatisticCard(String title, String value, Color color, Icon icon) {
     return InkWell(
       onTap: () {
-        if (title == "Produit en rupture") {
+        if (title == "Produits en rupture") {
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => OutOfStockScreen(),
+            ),
+          );
+        } else if (title == "Totals en stock") {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AllMedicinesScreen(),
             ),
           );
         }

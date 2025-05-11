@@ -1,20 +1,14 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:pharmacy_stock_management_app/Screens/AddMedicineScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/UpdateMedicineScreen.dart';
 
-class MedicineListScreen extends StatefulWidget {
-  final String categoryId;
-  final String categoryName;
-
-  MedicineListScreen({required this.categoryId, required this.categoryName});
-
+class AllMedicinesScreen extends StatefulWidget {
   @override
-  _MedicineListScreenState createState() => _MedicineListScreenState();
+  _AllMedicinesScreenState createState() => _AllMedicinesScreenState();
 }
 
-class _MedicineListScreenState extends State<MedicineListScreen> {
+class _AllMedicinesScreenState extends State<AllMedicinesScreen> {
   List<Map<String, dynamic>> medicines = [];
   List<Map<String, dynamic>> filteredMedicines = [];
   bool isLoading = true;
@@ -23,7 +17,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
   @override
   void initState() {
     super.initState();
-    fetchMedicines();
+    fetchAllMedicines();
     _searchController.addListener(() {
       filterMedicines(_searchController.text);
     });
@@ -52,37 +46,46 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
     });
   }
 
-  Future<void> fetchMedicines() async {
-    final response = await http.post(
-      Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
-      body: {
-        "action": "list_medicines_by_category",
-        "category_id": widget.categoryId,
-      },
-    );
+  Future<void> fetchAllMedicines() async {
+    try {
+      final response = await http.post(
+        Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+        body: {"action": "list_all_medicines"},
+      );
 
-    if (response.statusCode == 200) {
-      List data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        List data = jsonDecode(response.body);
+        setState(() {
+          medicines = data.map<Map<String, dynamic>>((item) => {
+            "id": item["id"].toString(),
+            "name": item["name"],
+            "category": item["category"] ?? "Inconnu",
+            "stock": item["stock"] ?? 0,
+            "price": item["price"] ?? 0.0,
+            "image": 'assets/images/pills.png',
+            "provider": item["provider"] ?? "Inconnu",
+            "provider_id": item["provider_id"]?.toString() ?? "",
+            "category_id": item["category_id"]?.toString() ?? "",
+          }).toList();
+          filteredMedicines = List.from(medicines);
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erreur lors du chargement des médicaments")),
+        );
+      }
+    } catch (e) {
       setState(() {
-        medicines = data.map<Map<String, dynamic>>((item) => {
-          "id": item["id"].toString(),
-          "name": item["name"],
-          "category": widget.categoryName,
-          "stock": item["stock"] ?? 0,
-          "price": item["price"] ?? 0.0,
-          "image": 'assets/images/pills.png',
-          "provider": item["provider"] ?? "Inconnu",
-          "provider_id": item["provider_id"]?.toString() ?? "",
-          "category_id": widget.categoryId,
-        }).toList();
-        filteredMedicines = List.from(medicines);
         isLoading = false;
       });
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      print("Erreur lors du chargement des médicaments");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur de connexion: $e")),
+      );
+      print(e);
     }
   }
 
@@ -97,19 +100,20 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
       );
 
       if (response.statusCode == 200) {
-        fetchMedicines();
+        fetchAllMedicines();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("$medicineName supprimé avec succès")),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Erreur lors de la suppression du médicament")),
+          SnackBar(content: Text("Erreur lors de la suppression")),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur de connexion: $e")),
+        SnackBar(content: Text("Erreur: $e")),
       );
+      print(e);
     }
   }
 
@@ -145,28 +149,29 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: Text(
-          "Produits - ${widget.categoryName}",
+          "Tous les médicaments",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.lightBlueAccent,
+        backgroundColor: Colors.green,
         foregroundColor: Colors.white,
       ),
       body: Column(
         children: [
+          // Barre de recherche
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: "Rechercher un médicament...",
-                prefixIcon: Icon(Icons.search, color: Colors.lightBlueAccent),
+                prefixIcon: Icon(Icons.search, color: Colors.green),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.lightBlueAccent),
+                  borderSide: BorderSide(color: Colors.green),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.lightBlueAccent, width: 2),
+                  borderSide: BorderSide(color: Colors.green, width: 2),
                 ),
                 contentPadding: EdgeInsets.symmetric(vertical: 0),
                 filled: true,
@@ -183,11 +188,13 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
               ),
             ),
           ),
+
+          // Contenu principal
           Expanded(
             child: Padding(
               padding: EdgeInsets.all(10),
               child: isLoading
-                  ? Center(child: CircularProgressIndicator(color: Colors.lightBlueAccent))
+                  ? Center(child: CircularProgressIndicator(color: Colors.green))
                   : filteredMedicines.isEmpty
                   ? Center(
                 child: Column(
@@ -197,7 +204,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                       padding: EdgeInsets.symmetric(horizontal: 20),
                       child: Text(
                         _searchController.text.isEmpty
-                            ? "Aucun médicament de catégorie ${widget.categoryName} n'est disponible."
+                            ? "Aucun médicament disponible"
                             : "Aucun résultat trouvé pour '${_searchController.text}'",
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 15),
@@ -315,7 +322,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                                     ),
                                   );
                                   if (updatedMedicine != null) {
-                                    fetchMedicines();
+                                    fetchAllMedicines();
                                   }
                                 },
                               ),
@@ -337,23 +344,6 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
             ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.lightBlueAccent,
-        foregroundColor: Colors.white,
-        onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddMedicineScreen(
-                category: widget.categoryName,
-                categoryId: widget.categoryId,
-              ),
-            ),
-          );
-          fetchMedicines();
-        },
-        child: Icon(Icons.add),
       ),
     );
   }

@@ -157,7 +157,6 @@ class _OutOfStockScreenState extends State<OutOfStockScreen> {
       ),
       body: Column(
         children: [
-          // Barre de recherche
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: TextField(
@@ -188,8 +187,6 @@ class _OutOfStockScreenState extends State<OutOfStockScreen> {
               ),
             ),
           ),
-
-          // Contenu principal
           Expanded(
             child: Padding(
               padding: EdgeInsets.all(10),
@@ -222,11 +219,14 @@ class _OutOfStockScreenState extends State<OutOfStockScreen> {
                 itemCount: filteredMedicines.length,
                 itemBuilder: (context, index) {
                   final medicine = filteredMedicines[index];
-                  final isCritical = medicine["stock"] == 0;
+                  final stock = int.tryParse(medicine["stock"].toString()) ?? 0;
+                  final isCritical = stock <= 1;
 
                   return Card(
                     margin: EdgeInsets.symmetric(vertical: 5),
-                    color: Colors.white,
+                      color: isCritical
+                          ? (stock == 0 ? Colors.red[50] : Colors.orange[50])
+                          : Colors.white,
                     elevation: 4,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -250,7 +250,7 @@ class _OutOfStockScreenState extends State<OutOfStockScreen> {
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: isCritical ? Colors.red : Colors.orange[800],
+                                    color: Colors.red,
                                   ),
                                 ),
                                 SizedBox(height: 5),
@@ -270,7 +270,7 @@ class _OutOfStockScreenState extends State<OutOfStockScreen> {
                                       style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
-                                        color: isCritical ? Colors.red : Colors.orange[800],
+                                        color: Colors.red,
                                       ),
                                     ),
                                   ],

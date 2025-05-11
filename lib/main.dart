@@ -17,38 +17,43 @@ FlutterLocalNotificationsPlugin();
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     if (task == taskName) {
-      // Appelle le serveur pour vérifier les stocks
-      final response = await http.post(
-        Uri.parse("http://192.168.1.6/pharmacy_api/api.php"), // adapte l'URL !
-        body: {"action": "get_out_of_stock"},
-      );
-
-      final data = jsonDecode(response.body);
-      if (data["out_of_stock"] != null && data["out_of_stock"] != "") {
-        final name = data["out_of_stock"];
-
-        // Notification
-        const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-          'rupture_channel_id',
-          'Rupture de stock',
-          channelDescription: 'Notification quand un produit est en rupture',
-          importance: Importance.max,
-          priority: Priority.high,
+      try {
+        // Appelle le serveur pour vérifier les stocks
+        final response = await http.post(
+          Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+          body: {"action": "get_out_of_stock"},
         );
 
-        const NotificationDetails notifDetails =
-        NotificationDetails(android: androidDetails);
+        final data = jsonDecode(response.body);
+        if (data["out_of_stock_count"] != null && data["out_of_stock_count"] > 0) {
+          final count = data["out_of_stock_count"];
 
-        await flutterLocalNotificationsPlugin.show(
-          0,
-          'Produit en rupture',
-          '$name est en rupture de stock !',
-          notifDetails,
-        );
+          // Notification
+          const AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
+            'rupture_channel_id',
+            'Rupture de stock',
+            channelDescription: 'Notification quand des produits sont en rupture',
+            importance: Importance.max,
+            priority: Priority.high,
+            enableVibration: true,
+            playSound: true,
+          );
+
+          const NotificationDetails notifDetails =
+          NotificationDetails(android: androidDetails);
+
+          await flutterLocalNotificationsPlugin.show(
+            0,
+            'Produits en rupture de stock',
+            '$count produit(s) en rupture ou stock faible !',
+            notifDetails,
+          );
+        }
+      } catch (e) {
+        print("Erreur lors de la vérification des stocks: $e");
       }
     }
-
     return Future.value(true);
   });
 }
@@ -69,12 +74,12 @@ void main() async {
     isInDebugMode: false,
   );
 
-  // Enregistrer la tâche périodique (20 secondes pour test)
+  // Enregistrer la tâche périodique (toutes les 30 minutes)
   await Workmanager().registerPeriodicTask(
-    "rupture_task_1", // ID unique
+    "rupture_task_1",
     taskName,
-    frequency: Duration(minutes: 10), // ⚠️ Pour test. Minimum 15min en prod (Android)
-    initialDelay: Duration(minutes: 10),
+    frequency: Duration(minutes: 15), // Fréquence plus adaptée en production
+    initialDelay: Duration(seconds: 10), // Délai initial court pour premier test
     constraints: Constraints(
       networkType: NetworkType.connected,
     ),
