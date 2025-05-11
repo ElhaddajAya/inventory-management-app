@@ -5,8 +5,81 @@ import 'package:pharmacy_stock_management_app/Screens/LoginScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/MyAccountScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/ProviderListScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/SplashScreen.dart';
+import 'dart:convert';
+import 'package:workmanager/workmanager.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:http/http.dart' as http;
 
-void main() {
+const taskName = "checkOutOfStockTask";
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+FlutterLocalNotificationsPlugin();
+
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    if (task == taskName) {
+      // Appelle le serveur pour vérifier les stocks
+      final response = await http.post(
+        Uri.parse("http://192.168.1.6/pharmacy_api/api.php"), // adapte l'URL !
+        body: {"action": "get_out_of_stock"},
+      );
+
+      final data = jsonDecode(response.body);
+      if (data["out_of_stock"] != null && data["out_of_stock"] != "") {
+        final name = data["out_of_stock"];
+
+        // Notification
+        const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'rupture_channel_id',
+          'Rupture de stock',
+          channelDescription: 'Notification quand un produit est en rupture',
+          importance: Importance.max,
+          priority: Priority.high,
+        );
+
+        const NotificationDetails notifDetails =
+        NotificationDetails(android: androidDetails);
+
+        await flutterLocalNotificationsPlugin.show(
+          0,
+          'Produit en rupture',
+          '$name est en rupture de stock !',
+          notifDetails,
+        );
+      }
+    }
+
+    return Future.value(true);
+  });
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialiser les notifications
+  const AndroidInitializationSettings initializationSettingsAndroid =
+  AndroidInitializationSettings('@mipmap/ic_launcher');
+  const InitializationSettings initializationSettings =
+  InitializationSettings(android: initializationSettingsAndroid);
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+  // Initialiser Workmanager
+  await Workmanager().initialize(
+    callbackDispatcher,
+    isInDebugMode: true,
+  );
+
+  // Enregistrer la tâche périodique (20 secondes pour test)
+  await Workmanager().registerPeriodicTask(
+    "rupture_task_1", // ID unique
+    taskName,
+    frequency: Duration(minutes: 15), // ⚠️ Pour test. Minimum 15min en prod (Android)
+    initialDelay: Duration(minutes: 15),
+    constraints: Constraints(
+      networkType: NetworkType.connected,
+    ),
+  );
+
   runApp(MyApp());
 }
 
