@@ -16,12 +16,43 @@ class MedicineListScreen extends StatefulWidget {
 
 class _MedicineListScreenState extends State<MedicineListScreen> {
   List<Map<String, dynamic>> medicines = [];
+  List<Map<String, dynamic>> filteredMedicines = []; // Pour la recherche
   bool isLoading = true;
+  final TextEditingController _searchController = TextEditingController(); // Contrôleur pour la recherche
 
   @override
   void initState() {
     super.initState();
     fetchMedicines();
+
+    // Ajouter un écouteur pour filtrer en temps réel
+    _searchController.addListener(() {
+      filterMedicines(_searchController.text);
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  // Méthode pour filtrer les médicaments selon le texte de recherche
+  void filterMedicines(String searchText) {
+    setState(() {
+      if (searchText.isEmpty) {
+        filteredMedicines = List.from(medicines);
+      } else {
+        filteredMedicines = medicines
+            .where((medicine) {
+          final name = medicine["name"].toString().toLowerCase();
+          final provider = medicine["provider"].toString().toLowerCase();
+          final searchLower = searchText.toLowerCase();
+          return name.contains(searchLower) || provider.contains(searchLower);
+        })
+            .toList();
+      }
+    });
   }
 
   Future<void> fetchMedicines() async {
@@ -47,6 +78,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
           "provider_id": item["provider_id"]?.toString() ?? "", // Conversion en String
           "category_id": widget.categoryId, // Ajout de category_id comme String
         }).toList();
+        filteredMedicines = List.from(medicines); // Initialiser la liste filtrée
         isLoading = false;
       });
     } else {
@@ -114,8 +146,6 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredMedicines = medicines;
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -126,140 +156,179 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
         backgroundColor: Colors.lightBlueAccent,
         foregroundColor: Colors.white,
       ),
-      body: Padding(
-        padding: EdgeInsets.all(10),
-        child: isLoading
-            ? Center(
-            child: CircularProgressIndicator(color: Colors.lightBlueAccent))
-            : filteredMedicines.isEmpty
-            ? Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  "Aucun médicament de catégorie ${widget
-                      .categoryName} n'est disponible.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 15),
+      body: Column(
+        children: [
+          // Barre de recherche
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: "Rechercher un médicament...",
+                prefixIcon: Icon(Icons.search, color: Colors.lightBlueAccent),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.lightBlueAccent),
                 ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.lightBlueAccent, width: 2),
+                ),
+                contentPadding: EdgeInsets.symmetric(vertical: 0),
+                filled: true,
+                fillColor: Colors.white,
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                  icon: Icon(Icons.clear, color: Colors.grey),
+                  onPressed: () {
+                    _searchController.clear();
+                    filterMedicines('');
+                  },
+                )
+                    : null,
               ),
-              SizedBox(height: 20),
-              Image.asset(
-                "assets/images/pills.png",
-                width: 40,
-              ),
-            ],
+            ),
           ),
-        )
-            : ListView.builder(
-          itemCount: filteredMedicines.length,
-          itemBuilder: (context, index) {
-            final medicine = filteredMedicines[index];
-            return Card(
-              margin: EdgeInsets.symmetric(vertical: 5),
-              color: Colors.white,
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(20, 15, 15, 15),
-                child: Row(
+
+          // Contenu principal
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.all(10),
+              child: isLoading
+                  ? Center(child: CircularProgressIndicator(color: Colors.lightBlueAccent))
+                  : filteredMedicines.isEmpty
+                  ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Image.asset(
-                      medicine["image"],
-                      width: 50,
-                      fit: BoxFit.cover,
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        _searchController.text.isEmpty
+                            ? "Aucun médicament de catégorie ${widget.categoryName} n'est disponible."
+                            : "Aucun résultat trouvé pour '${_searchController.text}'",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 15),
+                      ),
                     ),
-                    SizedBox(width: 20),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    SizedBox(height: 20),
+                    Image.asset(
+                      "assets/images/pills.png",
+                      width: 40,
+                    ),
+                  ],
+                ),
+              )
+                  : ListView.builder(
+                itemCount: filteredMedicines.length,
+                itemBuilder: (context, index) {
+                  final medicine = filteredMedicines[index];
+                  return Card(
+                    margin: EdgeInsets.symmetric(vertical: 5),
+                    color: Colors.white,
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(20, 15, 15, 15),
+                      child: Row(
                         children: [
-                          Text(
-                            medicine["name"],
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
+                          Image.asset(
+                            medicine["image"],
+                            width: 50,
+                            fit: BoxFit.cover,
                           ),
-                          SizedBox(height: 5),
-                          Row(
+                          SizedBox(width: 20),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  medicine["name"],
+                                  style: TextStyle(
+                                      fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
+                                SizedBox(height: 5),
+                                Row(
+                                  children: [
+                                    Icon(
+                                        Icons.category, size: 15, color: Colors.grey),
+                                    SizedBox(width: 5),
+                                    Text(
+                                      "${medicine["category"]}",
+                                      style: TextStyle(
+                                          fontSize: 15, color: Colors.grey),
+                                    ),
+                                    Spacer(),
+                                    Icon(Icons.production_quantity_limits, size: 15),
+                                    SizedBox(width: 5),
+                                    Text(
+                                      "${medicine["stock"]}",
+                                      style: TextStyle(
+                                          fontSize: 15, fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 5),
+                                Row(
+                                  children: [
+                                    Icon(Icons.store, size: 15),
+                                    SizedBox(width: 5),
+                                    Text(
+                                      "${medicine["provider"]}",
+                                      style: TextStyle(
+                                          fontSize: 15, fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 5),
+                                Text(
+                                  "${medicine["price"]} DH",
+                                  style: TextStyle(
+                                      fontSize: 15, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
-                                  Icons.category, size: 15, color: Colors.grey),
-                              SizedBox(width: 5),
-                              Text(
-                                "${medicine["category"]}",
-                                style: TextStyle(
-                                    fontSize: 15, color: Colors.grey),
+                              IconButton(
+                                icon: Icon(Icons.edit),
+                                color: Colors.lightBlueAccent,
+                                onPressed: () async {
+                                  final updatedMedicine = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => UpdateMedicineScreen(medicine: medicine),
+                                    ),
+                                  );
+                                  if (updatedMedicine != null) {
+                                    // Pas besoin d'une mise à jour locale, actualiser depuis l'API
+                                    fetchMedicines();
+                                  }
+                                },
                               ),
-                              Spacer(),
-                              Icon(Icons.production_quantity_limits, size: 15),
-                              SizedBox(width: 5),
-                              Text(
-                                "${medicine["stock"]}",
-                                style: TextStyle(
-                                    fontSize: 15, fontWeight: FontWeight.bold),
+                              IconButton(
+                                icon: Icon(Icons.delete),
+                                color: Colors.red,
+                                onPressed: () {
+                                  _showDeleteConfirmation(context, medicine);
+                                },
                               ),
                             ],
-                          ),
-                          SizedBox(height: 5),
-                          Row(
-                            children: [
-                              Icon(Icons.store, size: 15),
-                              SizedBox(width: 5),
-                              Text(
-                                "${medicine["provider"]}",
-                                style: TextStyle(
-                                    fontSize: 15, fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 5),
-                          Text(
-                            "${medicine["price"]} DH",
-                            style: TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                     ),
-                    SizedBox(width: 10),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.edit),
-                          color: Colors.lightBlueAccent,
-                          onPressed: () async {
-                            final updatedMedicine = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => UpdateMedicineScreen(medicine: medicine),
-                              ),
-                            );
-                            if (updatedMedicine != null) {
-                              // Pas besoin d'une mise à jour locale, actualiser depuis l'API
-                              fetchMedicines();
-                            }
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete),
-                          color: Colors.red,
-                          onPressed: () {
-                            _showDeleteConfirmation(context, medicine);
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
-            );
-          },
-        ),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.lightBlueAccent,
@@ -281,5 +350,4 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
       ),
     );
   }
-
 }

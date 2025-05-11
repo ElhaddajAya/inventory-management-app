@@ -66,15 +66,15 @@ void main() async {
   // Initialiser Workmanager
   await Workmanager().initialize(
     callbackDispatcher,
-    isInDebugMode: true,
+    isInDebugMode: false,
   );
 
   // Enregistrer la tâche périodique (20 secondes pour test)
   await Workmanager().registerPeriodicTask(
     "rupture_task_1", // ID unique
     taskName,
-    frequency: Duration(minutes: 15), // ⚠️ Pour test. Minimum 15min en prod (Android)
-    initialDelay: Duration(minutes: 15),
+    frequency: Duration(minutes: 10), // ⚠️ Pour test. Minimum 15min en prod (Android)
+    initialDelay: Duration(minutes: 10),
     constraints: Constraints(
       networkType: NetworkType.connected,
     ),

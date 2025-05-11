@@ -11,22 +11,42 @@ class CategoryScreen extends StatefulWidget {
 }
 
 class _CategoryScreen extends State<CategoryScreen> {
-  // final List<Map<String, dynamic>> categories = [
-  //   {"name": "Antibiotiques", "icon": Icons.medical_services, "color": Colors.orange},
-  //   {"name": "Antalgiques", "icon": Icons.healing, "color": Colors.lightGreen},
-  //   {"name": "Vitamines", "icon": Icons.local_florist, "color": Colors.lightBlue},
-  //   {"name": "Sirop", "icon": Icons.liquor, "color": Colors.redAccent},
-  //   {"name": "Antiseptiques", "icon": Icons.sanitizer, "color": Colors.cyan},
-  //   {"name": "Allergies", "icon": Icons.cloud, "color": Colors.deepPurpleAccent},
-  // ];
-
   List<Map<String, dynamic>> categories = [];
+  List<Map<String, dynamic>> filteredCategories = []; // Pour la recherche
   bool isLoading = true;
+  final TextEditingController _searchController = TextEditingController(); // Contrôleur pour la recherche
 
   @override
   void initState() {
     super.initState();
     fetchCategories();
+
+    // Ajouter un écouteur pour filtrer en temps réel
+    _searchController.addListener(() {
+      filterCategories(_searchController.text);
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  // Méthode pour filtrer les catégories selon le texte de recherche
+  void filterCategories(String searchText) {
+    setState(() {
+      if (searchText.isEmpty) {
+        filteredCategories = List.from(categories);
+      } else {
+        filteredCategories = categories
+            .where((category) => category["name"]
+            .toString()
+            .toLowerCase()
+            .contains(searchText.toLowerCase()))
+            .toList();
+      }
+    });
   }
 
   Future<void> fetchCategories() async {
@@ -52,6 +72,7 @@ class _CategoryScreen extends State<CategoryScreen> {
             "displayColor": _getColor(item["color"]),
           };
         }).toList();
+        filteredCategories = List.from(categories); // Initialiser la liste filtrée
         isLoading = false;
       });
     } else {
@@ -102,51 +123,88 @@ class _CategoryScreen extends State<CategoryScreen> {
         backgroundColor: Colors.lightBlueAccent,
         foregroundColor: Colors.white,
       ),
-      body: isLoading
-          ? Center(
-            child: CircularProgressIndicator(color: Colors.lightBlueAccent),
-          )
-          : Padding(
-        padding: EdgeInsets.all(10),
-        child: GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 7,
-            mainAxisSpacing: 7,
-          ),
-          itemCount: categories.length,
-          itemBuilder: (context, index) {
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MedicineListScreen(
-                      categoryId: categories[index]["id"], // <-- ID au lieu du nom
-                      categoryName: categories[index]["name"], // (facultatif) si tu veux l'afficher dans l'AppBar
-                    ),
-                  ),
-                );
-              },
-              onLongPress: () {
-                _showCategoryMenu(context, categories[index]);
-              },
-              child: Card(
-                color: Colors.white,
-                elevation: 4,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(categories[index]["displayIcon"], size: 30, color: categories[index]["displayColor"]),
-                    SizedBox(height: 10),
-                    Text(categories[index]["name"], textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                  ],
+      body: Column(
+        children: [
+          // Barre de recherche
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: "Rechercher une catégorie...",
+                prefixIcon: Icon(Icons.search, color: Colors.lightBlueAccent),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.lightBlueAccent),
                 ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.lightBlueAccent, width: 2),
+                ),
+                contentPadding: EdgeInsets.symmetric(vertical: 0),
+                filled: true,
+                fillColor: Colors.white,
               ),
-            );
-          },
-        ),
+            ),
+          ),
+
+          // Contenu principal
+          Expanded(
+            child: isLoading
+                ? Center(
+              child: CircularProgressIndicator(color: Colors.lightBlueAccent),
+            )
+                : filteredCategories.isEmpty
+                ? Center(
+              child: Text(
+                "Aucune catégorie trouvée",
+                style: TextStyle(fontSize: 16),
+              ),
+            )
+                : Padding(
+              padding: EdgeInsets.all(10),
+              child: GridView.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 7,
+                  mainAxisSpacing: 7,
+                ),
+                itemCount: filteredCategories.length,
+                itemBuilder: (context, index) {
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MedicineListScreen(
+                            categoryId: filteredCategories[index]["id"],
+                            categoryName: filteredCategories[index]["name"],
+                          ),
+                        ),
+                      );
+                    },
+                    onLongPress: () {
+                      _showCategoryMenu(context, filteredCategories[index]);
+                    },
+                    child: Card(
+                      color: Colors.white,
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(filteredCategories[index]["displayIcon"], size: 30, color: filteredCategories[index]["displayColor"]),
+                          SizedBox(height: 10),
+                          Text(filteredCategories[index]["name"], textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.lightBlueAccent,
@@ -233,6 +291,8 @@ class _CategoryScreen extends State<CategoryScreen> {
     if (result["success"] == true) {
       setState(() {
         categories.removeWhere((c) => c["name"] == categoryName);
+        filteredCategories = List.from(categories); // Mettre à jour la liste filtrée également
+        _searchController.clear(); // Réinitialiser la recherche
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("$categoryName supprimée avec succès")),

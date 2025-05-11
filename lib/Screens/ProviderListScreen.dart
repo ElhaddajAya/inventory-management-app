@@ -12,12 +12,49 @@ class ProviderlistScreen extends StatefulWidget {
 
 class _ProviderlistScreenState extends State<ProviderlistScreen> {
   List<Map<String, dynamic>> fournisseurs = [];
+  List<Map<String, dynamic>> filteredFournisseurs = []; // Pour la recherche
   bool isLoading = true;
+  final TextEditingController _searchController = TextEditingController(); // Contrôleur pour la recherche
 
   @override
   void initState() {
     super.initState();
     fetchProviders();
+
+    // Ajouter un écouteur pour filtrer en temps réel
+    _searchController.addListener(() {
+      filterProviders(_searchController.text);
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  // Méthode pour filtrer les fournisseurs selon le texte de recherche
+  void filterProviders(String searchText) {
+    setState(() {
+      if (searchText.isEmpty) {
+        filteredFournisseurs = List.from(fournisseurs);
+      } else {
+        filteredFournisseurs = fournisseurs
+            .where((provider) {
+          final name = provider["name"].toString().toLowerCase();
+          final email = provider["email"].toString().toLowerCase();
+          final city = provider["city"].toString().toLowerCase();
+          final phone = provider["phone"].toString().toLowerCase();
+          final searchLower = searchText.toLowerCase();
+
+          return name.contains(searchLower) ||
+              email.contains(searchLower) ||
+              city.contains(searchLower) ||
+              phone.contains(searchLower);
+        })
+            .toList();
+      }
+    });
   }
 
   void _callProvider(String phone) async {
@@ -48,6 +85,7 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
             "phone": item["phone"],
             "city": item["city"],
           }).toList();
+          filteredFournisseurs = List.from(fournisseurs); // Initialiser la liste filtrée
           isLoading = false;
         });
       } else {
@@ -82,7 +120,14 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
         final jsonResponse = jsonDecode(response.body);
         if (jsonResponse["success"] == true) {
           setState(() {
-            fournisseurs.removeAt(index);
+            // Supprimer de la liste originale
+            int originalIndex = fournisseurs.indexWhere((f) => f["id"] == providerId);
+            if (originalIndex != -1) {
+              fournisseurs.removeAt(originalIndex);
+            }
+
+            // Supprimer de la liste filtrée
+            filteredFournisseurs.removeAt(index);
           });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("$providerName supprimé")),
@@ -119,151 +164,203 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
         backgroundColor: Colors.lightBlueAccent,
         foregroundColor: Colors.white,
       ),
-      body: Padding(
-        padding: EdgeInsets.all(10),
-        child: isLoading
-            ? Center(
-              child: CircularProgressIndicator(color: Colors.lightBlueAccent),
-            )
-            : fournisseurs.isEmpty
-            ? Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                "Aucun fournisseur disponible",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 15),
+      body: Column(
+        children: [
+          // Barre de recherche
+          Padding(
+            padding: EdgeInsets.all(12),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: "Rechercher un fournisseur...",
+                prefixIcon: Icon(Icons.search, color: Colors.lightBlueAccent),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.lightBlueAccent),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.lightBlueAccent, width: 2),
+                ),
+                contentPadding: EdgeInsets.symmetric(vertical: 0),
+                filled: true,
+                fillColor: Colors.white,
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                  icon: Icon(Icons.clear, color: Colors.grey),
+                  onPressed: () {
+                    _searchController.clear();
+                    filterProviders('');
+                  },
+                )
+                    : null,
               ),
-              SizedBox(height: 20),
-              Icon(
-                Icons.store_outlined,
-                size: 40,
-                color: Colors.grey,
-              )
-            ],
+            ),
           ),
-        )
-            : ListView.builder(
-          itemCount: fournisseurs.length,
-          itemBuilder: (context, index) {
-            final fourniss = fournisseurs[index];
-            return GestureDetector(
-                onLongPress: () {
-              _showProviderOptions(fourniss["name"], fourniss["phone"]);
-            },
-            child: Card(
-                margin: EdgeInsets.symmetric(vertical: 5),
-                color: Colors.white,
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                child: Padding(
-                  padding: EdgeInsets.all(15),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(Icons.store, size: 30, color: Colors.orange),
-                      ),
-                      SizedBox(width: 15),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "${fourniss["name"]}",
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                          ),
-                          SizedBox(height: 5),
-                          Row(
-                            children: [
-                              Icon(Icons.location_on, size: 13, color: Colors.grey),
-                              SizedBox(width: 5),
-                              Text(
-                                "${fourniss["city"]}",
-                                style: TextStyle(fontSize: 13, color: Colors.grey),
-                              )
-                            ],
-                          ),
-                          SizedBox(height: 5),
-                          Row(
-                            children: [
-                              Icon(Icons.email, size: 13),
-                              SizedBox(width: 5),
-                              Text(
-                                "${fourniss["email"]}",
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                              )
-                            ],
-                          ),
-                          SizedBox(height: 5),
-                          Row(
-                            children: [
-                              Icon(Icons.phone, size: 13),
-                              SizedBox(width: 5),
-                              Text(
-                                "${fourniss["phone"]}",
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                              )
-                            ],
-                          ),
-                        ],
-                      ),
-                      Spacer(),
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.edit),
-                            color: Colors.lightBlueAccent,
-                            onPressed: () async {
-                              final updatedProvider = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => UpdateProviderScreen(provider: {
-                                    "name": fourniss["name"],
-                                    "email": fourniss["email"],
-                                    "phone": fourniss["phone"],
-                                    "city": fourniss["city"],
-                                    "id": fourniss["id"],
-                                  }),
+          // Liste des fournisseurs
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.all(10),
+              child: isLoading
+                  ? Center(
+                child: CircularProgressIndicator(color: Colors.lightBlueAccent),
+              )
+                  : filteredFournisseurs.isEmpty
+                  ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      _searchController.text.isEmpty
+                          ? "Aucun fournisseur disponible"
+                          : "Aucun résultat pour \"${_searchController.text}\"",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 15),
+                    ),
+                    SizedBox(height: 20),
+                    Icon(
+                      Icons.store_outlined,
+                      size: 40,
+                      color: Colors.grey,
+                    )
+                  ],
+                ),
+              )
+                  : ListView.builder(
+                itemCount: filteredFournisseurs.length,
+                itemBuilder: (context, index) {
+                  final fourniss = filteredFournisseurs[index];
+                  return GestureDetector(
+                      onLongPress: () {
+                        _showProviderOptions(fourniss["name"], fourniss["phone"]);
+                      },
+                      child: Card(
+                          margin: EdgeInsets.symmetric(vertical: 5),
+                          color: Colors.white,
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                          child: Padding(
+                            padding: EdgeInsets.all(15),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange.withOpacity(0.2),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(Icons.store, size: 30, color: Colors.orange),
                                 ),
-                              );
+                                SizedBox(width: 15),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "${fourniss["name"]}",
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                    ),
+                                    SizedBox(height: 5),
+                                    Row(
+                                      children: [
+                                        Icon(Icons.location_on, size: 13, color: Colors.grey),
+                                        SizedBox(width: 5),
+                                        Text(
+                                          "${fourniss["city"]}",
+                                          style: TextStyle(fontSize: 13, color: Colors.grey),
+                                        )
+                                      ],
+                                    ),
+                                    SizedBox(height: 5),
+                                    Row(
+                                      children: [
+                                        Icon(Icons.email, size: 13),
+                                        SizedBox(width: 5),
+                                        Text(
+                                          "${fourniss["email"]}",
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                        )
+                                      ],
+                                    ),
+                                    SizedBox(height: 5),
+                                    Row(
+                                      children: [
+                                        Icon(Icons.phone, size: 13),
+                                        SizedBox(width: 5),
+                                        Text(
+                                          "${fourniss["phone"]}",
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                        )
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                Spacer(),
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(Icons.edit),
+                                      color: Colors.lightBlueAccent,
+                                      onPressed: () async {
+                                        final updatedProvider = await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => UpdateProviderScreen(provider: {
+                                              "name": fourniss["name"],
+                                              "email": fourniss["email"],
+                                              "phone": fourniss["phone"],
+                                              "city": fourniss["city"],
+                                              "id": fourniss["id"],
+                                            }),
+                                          ),
+                                        );
 
-                              if (updatedProvider != null) {
-                                setState(() {
-                                  fournisseurs[index] = {
-                                    ...fourniss,
-                                    "name": updatedProvider["name"],
-                                    "email": updatedProvider["email"],
-                                    "phone": updatedProvider["phone"],
-                                    "city": updatedProvider["city"],
-                                  };
-                                });
-                              }
-                            },
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.delete),
-                            color: Colors.red,
-                            onPressed: () {
-                              _showDeleteConfirmation(context, fourniss["name"], index);
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ))
-            );
-          },
-        ),
+                                        if (updatedProvider != null) {
+                                          setState(() {
+                                            // Mise à jour dans les deux listes
+                                            int originalIndex = fournisseurs.indexWhere((f) => f["id"] == fourniss["id"]);
+                                            if (originalIndex != -1) {
+                                              fournisseurs[originalIndex] = {
+                                                ...fourniss,
+                                                "name": updatedProvider["name"],
+                                                "email": updatedProvider["email"],
+                                                "phone": updatedProvider["phone"],
+                                                "city": updatedProvider["city"],
+                                              };
+                                            }
+
+                                            filteredFournisseurs[index] = {
+                                              ...fourniss,
+                                              "name": updatedProvider["name"],
+                                              "email": updatedProvider["email"],
+                                              "phone": updatedProvider["phone"],
+                                              "city": updatedProvider["city"],
+                                            };
+                                          });
+                                        }
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.delete),
+                                      color: Colors.red,
+                                      onPressed: () {
+                                        _showDeleteConfirmation(context, fourniss["name"], index);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ))
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.lightBlueAccent,
@@ -331,7 +428,7 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
             ),
             TextButton(
               onPressed: () {
-                _deleteProvider(fournisseurs[index]["id"], fournissName, index);
+                _deleteProvider(filteredFournisseurs[index]["id"], fournissName, index);
                 Navigator.pop(context);
               },
               child: Text("Supprimer", style: TextStyle(color: Colors.red)),
