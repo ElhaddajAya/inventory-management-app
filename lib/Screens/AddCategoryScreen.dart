@@ -72,7 +72,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: Text("Ajouter une catégorie", style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.lightBlueAccent,

@@ -24,7 +24,7 @@ class _AddProviderScreenState extends State<AddProviderScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: Text(
           "Ajouter un fournisseur",

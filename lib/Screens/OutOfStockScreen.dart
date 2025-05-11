@@ -1,31 +1,23 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:pharmacy_stock_management_app/Screens/AddMedicineScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/UpdateMedicineScreen.dart';
 
-class MedicineListScreen extends StatefulWidget {
-  final String categoryId;
-  final String categoryName;
-
-  MedicineListScreen({required this.categoryId, required this.categoryName});
-
+class OutOfStockScreen extends StatefulWidget {
   @override
-  _MedicineListScreenState createState() => _MedicineListScreenState();
+  _OutOfStockScreenState createState() => _OutOfStockScreenState();
 }
 
-class _MedicineListScreenState extends State<MedicineListScreen> {
+class _OutOfStockScreenState extends State<OutOfStockScreen> {
   List<Map<String, dynamic>> medicines = [];
-  List<Map<String, dynamic>> filteredMedicines = []; // Pour la recherche
+  List<Map<String, dynamic>> filteredMedicines = [];
   bool isLoading = true;
-  final TextEditingController _searchController = TextEditingController(); // Contrôleur pour la recherche
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    fetchMedicines();
-
-    // Ajouter un écouteur pour filtrer en temps réel
+    fetchOutOfStockMedicines();
     _searchController.addListener(() {
       filterMedicines(_searchController.text);
     });
@@ -37,7 +29,6 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
     super.dispose();
   }
 
-  // Méthode pour filtrer les médicaments selon le texte de recherche
   void filterMedicines(String searchText) {
     setState(() {
       if (searchText.isEmpty) {
@@ -55,37 +46,46 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
     });
   }
 
-  Future<void> fetchMedicines() async {
-    final response = await http.post(
-      Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
-      body: {
-        "action": "list_medicines_by_category",
-        "category_id": widget.categoryId,
-      },
-    );
+  Future<void> fetchOutOfStockMedicines() async {
+    try {
+      final response = await http.post(
+        Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+        body: {"action": "list_out_of_stock_medicines"},
+      );
 
-    if (response.statusCode == 200) {
-      List data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        List data = jsonDecode(response.body);
+        setState(() {
+          medicines = data.map<Map<String, dynamic>>((item) => {
+            "id": item["id"].toString(),
+            "name": item["name"],
+            "category": item["category"] ?? "Inconnu",
+            "stock": item["stock"] ?? 0,
+            "price": item["price"] ?? 0.0,
+            "image": 'assets/images/pills.png',
+            "provider": item["provider"] ?? "Inconnu",
+            "provider_id": item["provider_id"]?.toString() ?? "",
+            "category_id": item["category_id"]?.toString() ?? "",
+          }).toList();
+          filteredMedicines = List.from(medicines);
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erreur lors du chargement des médicaments")),
+        );
+      }
+    } catch (e) {
       setState(() {
-        medicines = data.map<Map<String, dynamic>>((item) => {
-          "id": item["id"].toString(), // Conversion en String
-          "name": item["name"],
-          "category": widget.categoryName,
-          "stock": item["stock"] ?? 0,
-          "price": item["price"] ?? 0.0,
-          "image": 'assets/images/pills.png',
-          "provider": item["provider"] ?? "Inconnu",
-          "provider_id": item["provider_id"]?.toString() ?? "", // Conversion en String
-          "category_id": widget.categoryId, // Ajout de category_id comme String
-        }).toList();
-        filteredMedicines = List.from(medicines); // Initialiser la liste filtrée
         isLoading = false;
       });
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      print("Erreur lors du chargement des médicaments");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur de connexion: $e")),
+      );
+      print(e);
     }
   }
 
@@ -100,20 +100,20 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
       );
 
       if (response.statusCode == 200) {
-        // Rafraîchir la liste après la suppression
-        fetchMedicines();
+        fetchOutOfStockMedicines();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("$medicineName supprimé avec succès")),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Erreur lors de la suppression du médicament")),
+          SnackBar(content: Text("Erreur lors de la suppression")),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur de connexion: $e")),
+        SnackBar(content: Text("Erreur: $e")),
       );
+      print(e);
     }
   }
 
@@ -133,7 +133,6 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                // Appeler la fonction de suppression
                 _deleteMedicine(medicine["id"].toString(), medicine["name"]);
               },
               child: Text("Supprimer", style: TextStyle(color: Colors.red)),
@@ -150,10 +149,10 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: Text(
-          "Produits - ${widget.categoryName}",
+          "Médicaments en Rupture",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.lightBlueAccent,
+        backgroundColor: Colors.red,
         foregroundColor: Colors.white,
       ),
       body: Column(
@@ -165,14 +164,14 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: "Rechercher un médicament...",
-                prefixIcon: Icon(Icons.search, color: Colors.lightBlueAccent),
+                prefixIcon: Icon(Icons.search, color: Colors.red),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.lightBlueAccent),
+                  borderSide: BorderSide(color: Colors.red),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.lightBlueAccent, width: 2),
+                  borderSide: BorderSide(color: Colors.red, width: 2),
                 ),
                 contentPadding: EdgeInsets.symmetric(vertical: 0),
                 filled: true,
@@ -195,7 +194,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
             child: Padding(
               padding: EdgeInsets.all(10),
               child: isLoading
-                  ? Center(child: CircularProgressIndicator(color: Colors.lightBlueAccent))
+                  ? Center(child: CircularProgressIndicator(color: Colors.red))
                   : filteredMedicines.isEmpty
                   ? Center(
                 child: Column(
@@ -205,7 +204,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                       padding: EdgeInsets.symmetric(horizontal: 20),
                       child: Text(
                         _searchController.text.isEmpty
-                            ? "Aucun médicament de catégorie ${widget.categoryName} n'est disponible."
+                            ? "Aucun médicament en rupture de stock"
                             : "Aucun résultat trouvé pour '${_searchController.text}'",
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 15),
@@ -223,6 +222,8 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                 itemCount: filteredMedicines.length,
                 itemBuilder: (context, index) {
                   final medicine = filteredMedicines[index];
+                  final isCritical = medicine["stock"] == 0;
+
                   return Card(
                     margin: EdgeInsets.symmetric(vertical: 5),
                     color: Colors.white,
@@ -247,18 +248,19 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                                 Text(
                                   medicine["name"],
                                   style: TextStyle(
-                                      fontSize: 16, fontWeight: FontWeight.bold),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: isCritical ? Colors.red : Colors.orange[800],
+                                  ),
                                 ),
                                 SizedBox(height: 5),
                                 Row(
                                   children: [
-                                    Icon(
-                                        Icons.category, size: 15, color: Colors.grey),
+                                    Icon(Icons.category, size: 15, color: Colors.grey),
                                     SizedBox(width: 5),
                                     Text(
                                       "${medicine["category"]}",
-                                      style: TextStyle(
-                                          fontSize: 15, color: Colors.grey),
+                                      style: TextStyle(fontSize: 15, color: Colors.grey),
                                     ),
                                     Spacer(),
                                     Icon(Icons.production_quantity_limits, size: 15),
@@ -266,7 +268,10 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                                     Text(
                                       "${medicine["stock"]}",
                                       style: TextStyle(
-                                          fontSize: 15, fontWeight: FontWeight.bold),
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: isCritical ? Colors.red : Colors.orange[800],
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -278,7 +283,9 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                                     Text(
                                       "${medicine["provider"]}",
                                       style: TextStyle(
-                                          fontSize: 15, fontWeight: FontWeight.bold),
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -286,7 +293,9 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                                 Text(
                                   "${medicine["price"]} DH",
                                   style: TextStyle(
-                                      fontSize: 15, fontWeight: FontWeight.bold),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ],
                             ),
@@ -306,8 +315,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                                     ),
                                   );
                                   if (updatedMedicine != null) {
-                                    // Pas besoin d'une mise à jour locale, actualiser depuis l'API
-                                    fetchMedicines();
+                                    fetchOutOfStockMedicines();
                                   }
                                 },
                               ),
@@ -329,24 +337,6 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
             ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.lightBlueAccent,
-        foregroundColor: Colors.white,
-        onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddMedicineScreen(
-                category: widget.categoryName,
-                categoryId: widget.categoryId,
-              ),
-            ),
-          );
-          // Rafraîchir la liste après être revenu de l'écran d'ajout
-          fetchMedicines();
-        },
-        child: Icon(Icons.add),
       ),
     );
   }

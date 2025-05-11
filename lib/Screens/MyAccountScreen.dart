@@ -102,7 +102,7 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.grey[100],
         appBar: AppBar(
           title: Text(
               "Mon Profil", style: TextStyle(fontWeight: FontWeight.bold)

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:pharmacy_stock_management_app/Screens/OutOfStockScreen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -82,22 +83,48 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     fetchStatistics();
+    checkOutOfStock();
   }
 
-  Future<void> fetchStatistics() async {
-    final url = 'http://192.168.1.6/pharmacy_api/api.php'; // Remplace par l'URL de ton API
+  Future<void> checkOutOfStock() async {
+    final url = 'http://192.168.1.6/pharmacy_api/api.php';
     final response = await http.post(
       Uri.parse(url),
-      body: {'action': 'get_statistics'},
+      body: {'action': 'get_out_of_stock'},
     );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       setState(() {
-        totalMedicines = data['total_medicines'].toString();
-        rupture = data['rupture'].toString();
-        loyalProvider = data['loyal_provider'];
-        mostExpensiveMedicine = data['most_expensive_medicine'];
+        rupture = data['out_of_stock_count'].toString();
+      });
+    }
+  }
+
+  Future<void> fetchStatistics() async {
+    final url = 'http://192.168.1.6/pharmacy_api/api.php'; // Remplace par l'URL de ton API
+
+    // D'abord, récupérer les statistiques générales
+    final statsResponse = await http.post(
+      Uri.parse(url),
+      body: {'action': 'get_statistics'},
+    );
+
+    // Ensuite, récupérer le nombre de médicaments en rupture de stock
+    final outOfStockResponse = await http.post(
+      Uri.parse(url),
+      body: {'action': 'get_out_of_stock'},
+    );
+
+    if (statsResponse.statusCode == 200 && outOfStockResponse.statusCode == 200) {
+      final statsData = json.decode(statsResponse.body);
+      final outOfStockData = json.decode(outOfStockResponse.body);
+
+      setState(() {
+        totalMedicines = statsData['total_medicines'].toString();
+        rupture = outOfStockData['out_of_stock_count'].toString(); // Utilisation du nouveau champ
+        loyalProvider = statsData['loyal_provider'];
+        mostExpensiveMedicine = statsData['most_expensive_medicine'];
         isLoading = false;
       });
     } else {
@@ -115,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // String loyalProviders = _calculateLoyalProviders();
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: Text(
           "Tableau de Bord",
@@ -136,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisSpacing: 10,
               children: [
                 _buildStatisticCard(
-                  "Produit en rupture",
+                  "Produits en rupture",
                   rupture,
                   Colors.red,
                   Icon(Icons.production_quantity_limits, color: Colors.white, size: 30)
@@ -168,30 +195,42 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildStatisticCard(String title, String value, Color color, Icon icon) {
-    return Card(
-      elevation: 4,
-      color: color, // Utiliser la couleur pleine
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            icon,
-            SizedBox(height: 8),
-            Text(
-              title,
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+    return InkWell(
+      onTap: () {
+        if (title == "Produit en rupture") {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OutOfStockScreen(),
             ),
-            SizedBox(height: 15),
-            Text(
-              value,
-              style: TextStyle(fontSize: 15, color: Colors.white),
-              textAlign: TextAlign.center,
-            ),
-          ],
+          );
+        }
+      },
+      child: Card(
+        elevation: 4,
+        color: color,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              icon,
+              SizedBox(height: 8),
+              Text(
+                title,
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+              SizedBox(height: 15),
+              Text(
+                value,
+                style: TextStyle(fontSize: 15, color: Colors.white),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );

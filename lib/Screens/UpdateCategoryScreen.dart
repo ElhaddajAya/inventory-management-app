@@ -83,7 +83,7 @@ class _UpdateCategoryScreenState extends State<UpdateCategoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: Text("Modifier la catégorie", style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.lightBlueAccent,

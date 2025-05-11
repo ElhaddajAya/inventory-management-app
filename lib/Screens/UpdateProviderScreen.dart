@@ -36,7 +36,7 @@ class _UpdateProviderScreenState extends State<UpdateProviderScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: Text(
           "Modifier le fournisseur",

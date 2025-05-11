@@ -155,7 +155,7 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: Text(
           "Fournisseurs",
@@ -249,10 +249,10 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
                                   width: 60,
                                   height: 60,
                                   decoration: BoxDecoration(
-                                    color: Colors.orange.withOpacity(0.2),
+                                    color: Colors.lightBlueAccent.withOpacity(0.2),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: Icon(Icons.store, size: 30, color: Colors.orange),
+                                  child: Icon(Icons.store, size: 30, color: Colors.lightBlueAccent),
                                 ),
                                 SizedBox(width: 15),
                                 Column(
