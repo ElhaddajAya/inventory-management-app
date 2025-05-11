@@ -93,6 +93,15 @@ class _CategoryScreen extends State<CategoryScreen> {
       case "cloud": return Icons.cloud;
       case "medication_liquid": return Icons.medication_liquid;
       case "medication": return Icons.medication;
+    // Nouvelles icônes ajoutées
+      case "vaccines": return Icons.vaccines;
+      case "medical_information": return Icons.medical_information;
+      case "health_and_safety": return Icons.health_and_safety;
+      case "science": return Icons.science;
+      case "biotech": return Icons.biotech;
+      case "coronavirus": return Icons.coronavirus;
+      case "air": return Icons.air;
+      case "water_drop": return Icons.water_drop;
       default: return Icons.category;
     }
   }
@@ -107,6 +116,15 @@ class _CategoryScreen extends State<CategoryScreen> {
       case "deepPurpleAccent": return Colors.deepPurpleAccent;
       case "pinkAccent": return Colors.pinkAccent;
       case "yellow": return Colors.yellow;
+    // Nouvelles couleurs ajoutées
+      case "teal": return Colors.teal;
+      case "indigo": return Colors.indigo;
+      case "amber": return Colors.amber;
+      case "brown": return Colors.brown;
+      case "deepOrange": return Colors.deepOrange;
+      case "lime": return Colors.lime;
+      case "blueGrey": return Colors.blueGrey;
+      case "purple": return Colors.purple;
       default: return Colors.grey;
     }
   }
@@ -201,6 +219,7 @@ class _CategoryScreen extends State<CategoryScreen> {
                     ),
                   );
                 },
+                padding: EdgeInsets.only(bottom: 80),
               ),
             ),
           ),

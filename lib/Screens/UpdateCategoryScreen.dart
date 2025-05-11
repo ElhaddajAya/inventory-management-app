@@ -25,7 +25,16 @@ class _UpdateCategoryScreenState extends State<UpdateCategoryScreen> {
     "sanitizer": Icons.sanitizer,
     "cloud": Icons.cloud,
     "medication_liquid": Icons.medication_liquid,
-    "medication": Icons.medication
+    "medication": Icons.medication,
+    // Nouvelles icônes ajoutées
+    "vaccines": Icons.vaccines,
+    "medical_information": Icons.medical_information,
+    "health_and_safety": Icons.health_and_safety,
+    "science": Icons.science,
+    "biotech": Icons.biotech,
+    "coronavirus": Icons.coronavirus,
+    "air": Icons.air,
+    "water_drop": Icons.water_drop,
   };
 
   final Map<String, Color> _colors = {
@@ -37,6 +46,15 @@ class _UpdateCategoryScreenState extends State<UpdateCategoryScreen> {
     "deepPurpleAccent": Colors.deepPurpleAccent,
     "pinkAccent": Colors.pinkAccent,
     "yellow": Colors.yellow,
+    // Nouvelles couleurs ajoutées
+    "teal": Colors.teal,
+    "indigo": Colors.indigo,
+    "amber": Colors.amber,
+    "brown": Colors.brown,
+    "deepOrange": Colors.deepOrange,
+    "lime": Colors.lime,
+    "blueGrey": Colors.blueGrey,
+    "purple": Colors.purple,
   };
 
   @override

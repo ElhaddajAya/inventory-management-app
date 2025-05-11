@@ -333,6 +333,7 @@ class _OutOfStockScreenState extends State<OutOfStockScreen> {
                     ),
                   );
                 },
+                padding: EdgeInsets.only(bottom: 80),
               ),
             ),
           ),

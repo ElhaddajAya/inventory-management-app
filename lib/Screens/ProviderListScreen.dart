@@ -357,6 +357,7 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
                           ))
                   );
                 },
+                padding: EdgeInsets.only(bottom: 80),
               ),
             ),
           ),

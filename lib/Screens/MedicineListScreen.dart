@@ -333,6 +333,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                     ),
                   );
                 },
+                padding: EdgeInsets.only(bottom: 80),
               ),
             ),
           ),
