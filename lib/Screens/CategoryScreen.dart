@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:pharmacy_stock_management_app/Screens/AddCategoryScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/UpdateCategoryScreen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'MedicineListScreen.dart';
 
 class CategoryScreen extends StatefulWidget {
@@ -16,9 +17,19 @@ class _CategoryScreen extends State<CategoryScreen> {
   bool isLoading = true;
   final TextEditingController _searchController = TextEditingController(); // Contrôleur pour la recherche
 
+  String userRole = "user"; // Par défaut
+
+  void loadUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userRole = prefs.getString("user_role") ?? "user";
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    loadUserRole();
     fetchCategories();
 
     // Ajouter un écouteur pour filtrer en temps réel
@@ -233,7 +244,7 @@ class _CategoryScreen extends State<CategoryScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: userRole == "admin" ? FloatingActionButton(
         backgroundColor: Colors.lightBlueAccent,
         onPressed: () async {
           final newCategory = await Navigator.push(
@@ -248,7 +259,7 @@ class _CategoryScreen extends State<CategoryScreen> {
         },
         child: Icon(Icons.add),
         foregroundColor: Colors.white,
-      ),
+      ) : null
     );
   }
 

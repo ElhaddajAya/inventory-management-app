@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:pharmacy_stock_management_app/Screens/AddProviderScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/UpdateProviderScreen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ProviderlistScreen extends StatefulWidget {
@@ -16,9 +17,19 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
   bool isLoading = true;
   final TextEditingController _searchController = TextEditingController(); // Contrôleur pour la recherche
 
+  String userRole = "user"; // Par défaut
+
+  void loadUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userRole = prefs.getString("user_role") ?? "user";
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    loadUserRole();
     fetchProviders();
 
     // Ajouter un écouteur pour filtrer en temps réel
@@ -299,7 +310,7 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
                                 Spacer(),
                                 Column(
                                   mainAxisSize: MainAxisSize.min,
-                                  children: [
+                                  children: userRole == "admin" ? [
                                     IconButton(
                                       icon: Icon(Icons.edit),
                                       color: Colors.lightBlueAccent,
@@ -349,7 +360,7 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
                                         _showDeleteConfirmation(context, fourniss["name"], index);
                                       },
                                     ),
-                                  ],
+                                  ] : []
                                 ),
                               ],
                             ),
@@ -362,7 +373,7 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: userRole == "admin" ? FloatingActionButton(
         backgroundColor: Colors.lightBlueAccent,
         child: Icon(Icons.add, color: Colors.white),
         onPressed: () async {
@@ -377,7 +388,7 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
             fetchProviders();
           }
         },
-      ),
+      ) : null
     );
   }
 

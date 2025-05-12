@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:pharmacy_stock_management_app/Screens/AddMedicineScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/UpdateMedicineScreen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MedicineListScreen extends StatefulWidget {
   final String categoryId;
@@ -20,10 +21,20 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
   bool isLoading = true;
   final TextEditingController _searchController = TextEditingController();
 
+  String userRole = "user"; // Par défaut
+
+  void loadUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userRole = prefs.getString("user_role") ?? "user";
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     fetchMedicines();
+    loadUserRole();
     _searchController.addListener(() {
       filterMedicines(_searchController.text);
     });
@@ -302,7 +313,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                           SizedBox(width: 10),
                           Column(
                             mainAxisSize: MainAxisSize.min,
-                            children: [
+                            children: userRole == "admin" ? [
                               IconButton(
                                 icon: Icon(Icons.edit),
                                 color: Colors.lightBlueAccent,
@@ -325,7 +336,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                                   _showDeleteConfirmation(context, medicine);
                                 },
                               ),
-                            ],
+                            ] : []
                           ),
                         ],
                       ),
@@ -338,7 +349,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: userRole == "admin" ? FloatingActionButton(
         backgroundColor: Colors.lightBlueAccent,
         foregroundColor: Colors.white,
         onPressed: () async {
@@ -354,7 +365,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
           fetchMedicines();
         },
         child: Icon(Icons.add),
-      ),
+      ) : null
     );
   }
 }

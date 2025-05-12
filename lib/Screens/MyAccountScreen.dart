@@ -136,7 +136,7 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    adminData["role"]! == "admin" ? "Admnistrateur" : "Utilisateur",
+                    adminData["role"]! == "admin" ? "Pharmacien Admnistrateur" : "Pharmacien Assistant",
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                   SizedBox(height: 15,),

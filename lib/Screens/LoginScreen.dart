@@ -254,6 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // 🔐 Stocker l'ID dans SharedPreferences
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setInt("user_id", id);
+        await prefs.setString("user_role", role);
 
         Navigator.pushReplacement(
           context,

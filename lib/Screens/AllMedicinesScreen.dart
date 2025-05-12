@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:pharmacy_stock_management_app/Screens/UpdateMedicineScreen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AllMedicinesScreen extends StatefulWidget {
   @override
@@ -14,10 +15,20 @@ class _AllMedicinesScreenState extends State<AllMedicinesScreen> {
   bool isLoading = true;
   final TextEditingController _searchController = TextEditingController();
 
+  String userRole = "user"; // Par défaut
+
+  void loadUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userRole = prefs.getString("user_role") ?? "user";
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     fetchAllMedicines();
+    loadUserRole();
     _searchController.addListener(() {
       filterMedicines(_searchController.text);
     });
@@ -309,7 +320,7 @@ class _AllMedicinesScreenState extends State<AllMedicinesScreen> {
                           SizedBox(width: 10),
                           Column(
                             mainAxisSize: MainAxisSize.min,
-                            children: [
+                            children: userRole == "admin" ? [
                               IconButton(
                                 icon: Icon(Icons.edit),
                                 color: Colors.lightBlueAccent,
@@ -332,7 +343,7 @@ class _AllMedicinesScreenState extends State<AllMedicinesScreen> {
                                   _showDeleteConfirmation(context, medicine);
                                 },
                               ),
-                            ],
+                            ] : []
                           ),
                         ],
                       ),
