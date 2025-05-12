@@ -20,7 +20,7 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
     "phone": "",
     "role": "",
     "city": "",
-    "profileImage": "assets/images/pills.png",
+    "profileImage": "",
   };
 
   bool isLoading = false;
@@ -77,7 +77,7 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
             "phone": user["phone"] ?? "",
             "role": user["role"] ?? "",
             "city": user["city"] ?? "",
-            "profileImage": "assets/images/pills.png",
+            "profileImage": user["role"] == "admin" ? "assets/images/aya.png" : "assets/images/salma.png",
           };
         });
       } else {

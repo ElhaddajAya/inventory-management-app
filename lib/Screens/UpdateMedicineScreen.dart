@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:image_picker/image_picker.dart';
 
 class UpdateMedicineScreen extends StatefulWidget {
   final Map medicine;
@@ -21,6 +25,17 @@ class _UpdateMedicineScreenState extends State<UpdateMedicineScreen> {
 
   final List<Map<String, dynamic>> _categories = [];
   String? _selectedCategoryId;
+
+  File? _selectedImage;
+  final ImagePicker _picker = ImagePicker();
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
 
   // Clé pour la validation du formulaire
   final _formKey = GlobalKey<FormState>();
@@ -308,6 +323,27 @@ class _UpdateMedicineScreenState extends State<UpdateMedicineScreen> {
                     }
                     return null;
                   },
+                ),
+                SizedBox(height: 20,),
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
+                    height: 150,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.lightBlueAccent, width: 2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child:Center(
+                      child: _selectedImage != null
+                          ? Image.file(_selectedImage!, fit: BoxFit.cover)
+                          : (widget.medicine["image"] != null &&
+                          widget.medicine["image"].toString().isNotEmpty &&
+                          widget.medicine["image"].toString().startsWith("http"))
+                          ? Image.network(widget.medicine["image"], fit: BoxFit.cover)
+                          : Image.asset("assets/images/pills.png", fit: BoxFit.cover),
+                    ),
+                  ),
                 ),
                 SizedBox(height: 40),
                 // Boutons d'action

@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:image_picker/image_picker.dart';
 
 class AddMedicineScreen extends StatefulWidget {
   final String category;
@@ -20,6 +24,17 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
   // Liste des fournisseurs disponibles
   final List<Map<String, dynamic>> _providers = []; // Liste vide initialement
   String? _selectedProviderId;
+
+  File? _selectedImage;
+  final ImagePicker _picker = ImagePicker();
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -210,6 +225,29 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                     }
                     return null;
                   },
+                ),
+                SizedBox(height: 20),
+
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
+                    height: 150,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.lightBlueAccent, width: 2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child:Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.image, color: Colors.grey, size: 40),
+                          SizedBox(height: 10),
+                          Text("Sélectionner une image", style: TextStyle(color: Colors.grey)),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
                 SizedBox(height: 40),
 
