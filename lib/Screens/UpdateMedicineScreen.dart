@@ -160,6 +160,8 @@ class _UpdateMedicineScreenState extends State<UpdateMedicineScreen> {
                 TextFormField(
                   controller: _nameController,
                   decoration: InputDecoration(
+                    fillColor: Colors.white,
+                    filled: true,
                     labelText: "Nom du médicament",
                     labelStyle: TextStyle(color: Colors.lightBlueAccent),
                     prefixIcon: Icon(Icons.medication, color: Colors.lightBlueAccent),
@@ -221,6 +223,8 @@ class _UpdateMedicineScreenState extends State<UpdateMedicineScreen> {
                   controller: _stockController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
+                    fillColor: Colors.white,
+                    filled: true,
                     labelText: "Quantité en stock",
                     labelStyle: TextStyle(color: Colors.lightBlueAccent),
                     prefixIcon: Icon(Icons.inventory, color: Colors.lightBlueAccent),
@@ -248,6 +252,8 @@ class _UpdateMedicineScreenState extends State<UpdateMedicineScreen> {
                   controller: _priceController,
                   keyboardType: TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
+                    fillColor: Colors.white,
+                    filled: true,
                     labelText: "Prix (DH)",
                     labelStyle: TextStyle(color: Colors.lightBlueAccent),
                     hintText: "Ex: 45.50",

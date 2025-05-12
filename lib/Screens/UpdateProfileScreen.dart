@@ -111,6 +111,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                 TextFormField(
                   controller: _nameController,
                   decoration: InputDecoration(
+                    fillColor: Colors.white,
+                    filled: true,
                     labelText: "Nom complet",
                     labelStyle: TextStyle(color: Colors.lightBlueAccent),
                     prefixIcon: Icon(Icons.person, color: Colors.lightBlueAccent),
@@ -136,6 +138,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
+                    fillColor: Colors.white,
+                    filled: true,
                     labelText: "Email",
                     labelStyle: TextStyle(color: Colors.lightBlueAccent),
                     prefixIcon: Icon(Icons.email, color: Colors.lightBlueAccent),
@@ -167,6 +171,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                     FilteringTextInputFormatter.allow(RegExp(r'[0-9+\- ]')),
                   ],
                   decoration: InputDecoration(
+                    fillColor: Colors.white,
+                    filled: true,
                     labelText: "Téléphone",
                     labelStyle: TextStyle(color: Colors.lightBlueAccent),
                     prefixIcon: Icon(Icons.phone, color: Colors.lightBlueAccent),

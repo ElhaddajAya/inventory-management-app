@@ -57,6 +57,8 @@ class _UpdateProviderScreenState extends State<UpdateProviderScreen> {
                 TextFormField(
                   controller: _nameController,
                   decoration: InputDecoration(
+                    fillColor: Colors.white,
+                    filled: true,
                     labelText: "Nom du fournisseur",
                     labelStyle: TextStyle(color: Colors.lightBlueAccent),
                     prefixIcon: Icon(Icons.business, color: Colors.lightBlueAccent),
@@ -82,6 +84,8 @@ class _UpdateProviderScreenState extends State<UpdateProviderScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
+                    fillColor: Colors.white,
+                    filled: true,
                     labelText: "Email",
                     labelStyle: TextStyle(color: Colors.lightBlueAccent),
                     prefixIcon: Icon(Icons.email, color: Colors.lightBlueAccent),
@@ -111,6 +115,8 @@ class _UpdateProviderScreenState extends State<UpdateProviderScreen> {
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
+                    fillColor: Colors.white,
+                    filled: true,
                     labelText: "Téléphone",
                     labelStyle: TextStyle(color: Colors.lightBlueAccent),
                     hintText: "Ex: 0111113124",

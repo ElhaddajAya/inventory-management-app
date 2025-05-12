@@ -117,6 +117,8 @@ class _UpdateCategoryScreenState extends State<UpdateCategoryScreen> {
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
+                  fillColor: Colors.white,
+                  filled: true,
                   labelText: "Nom de la catégorie",
                   labelStyle: TextStyle(color: Colors.lightBlueAccent),
                   prefixIcon: Icon(Icons.label, color: Colors.lightBlueAccent),
