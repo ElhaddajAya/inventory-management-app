@@ -80,10 +80,11 @@ void main() async {
 
   await flutterLocalNotificationsPlugin.initialize(
     initializationSettings,
-    onDidReceiveNotificationResponse: (payload) {
-      if (payload == "out_of_stock") {
-        navigatorKey.currentState?.push(MaterialPageRoute(
-            builder: (_) => OutOfStockScreen()));
+    onDidReceiveNotificationResponse: (NotificationResponse response) {
+      if (response.payload == "out_of_stock") {
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(builder: (_) => OutOfStockScreen()),
+        );
       }
     },
   );
