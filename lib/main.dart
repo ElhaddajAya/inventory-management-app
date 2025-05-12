@@ -3,6 +3,7 @@ import 'package:pharmacy_stock_management_app/Screens/CategoryScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/HomeScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/LoginScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/MyAccountScreen.dart';
+import 'package:pharmacy_stock_management_app/Screens/OutOfStockScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/ProviderListScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/SplashScreen.dart';
 import 'dart:convert';
@@ -10,88 +11,93 @@ import 'package:workmanager/workmanager.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 
-const taskName = "checkOutOfStockTask";
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-FlutterLocalNotificationsPlugin();
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
-    if (task == taskName) {
-      try {
-        // Appelle le serveur pour vérifier les stocks
-        final response = await http.post(
-          Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
-          body: {"action": "get_out_of_stock"},
-        );
-
-        final data = jsonDecode(response.body);
-        if (data["out_of_stock_count"] != null && data["out_of_stock_count"] > 0) {
-          final count = data["out_of_stock_count"];
-
-          // Notification
-          const AndroidNotificationDetails androidDetails =
-          AndroidNotificationDetails(
-            'rupture_channel_id',
-            'Rupture de stock',
-            channelDescription: 'Notification quand des produits sont en rupture',
-            importance: Importance.max,
-            priority: Priority.high,
-            enableVibration: true,
-            playSound: true,
-          );
-
-          const NotificationDetails notifDetails =
-          NotificationDetails(android: androidDetails);
-
-          await flutterLocalNotificationsPlugin.show(
-            0,
-            'Produits en rupture de stock',
-            '$count produit(s) en rupture ou stock faible !',
-            notifDetails,
-          );
-        }
-      } catch (e) {
-        print("Erreur lors de la vérification des stocks: $e");
-      }
-    }
+    await sendOutOfStockNotification();
     return Future.value(true);
   });
+}
+
+Future<void> sendOutOfStockNotification() async {
+  final response = await http.post(
+    Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+    body: {"action": "list_out_of_stock_medicines"},
+  );
+
+  if (response.statusCode == 200) {
+    List data = jsonDecode(response.body);
+
+    if (data.isNotEmpty) {
+      String firstName = data[0]["name"];
+      int total = data.length;
+
+      String title = "Rupture de stock";
+      String body = total == 1
+          ? "$firstName est en rupture de stock."
+          : "$firstName et ${total - 1} autres produits sont en rupture de stock.";
+
+      const AndroidNotificationDetails androidDetails =
+      AndroidNotificationDetails(
+        'out_of_stock_channel',
+        'Ruptures de stock',
+        importance: Importance.max,
+        priority: Priority.high,
+      );
+
+      const NotificationDetails notificationDetails =
+      NotificationDetails(android: androidDetails);
+
+      await flutterLocalNotificationsPlugin.show(
+        0,
+        title,
+        body,
+        notificationDetails,
+        payload: "out_of_stock",
+      );
+    }
+  }
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialiser WorkManager
+  Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+
+  // Planifier une tâche périodique toutes les 15 minutes
+  Workmanager().registerPeriodicTask("checkStockTask", "checkStockTask",
+      frequency: Duration(minutes: 15));
+
   // Initialiser les notifications
   const AndroidInitializationSettings initializationSettingsAndroid =
   AndroidInitializationSettings('@mipmap/ic_launcher');
-  const InitializationSettings initializationSettings =
-  InitializationSettings(android: initializationSettingsAndroid);
-  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-  // Initialiser Workmanager
-  await Workmanager().initialize(
-    callbackDispatcher,
-    isInDebugMode: false,
+  final InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
   );
 
-  // Enregistrer la tâche périodique (toutes les 30 minutes)
-  await Workmanager().registerPeriodicTask(
-    "rupture_task_1",
-    taskName,
-    frequency: Duration(minutes: 15), // Fréquence plus adaptée en production
-    initialDelay: Duration(seconds: 10), // Délai initial court pour premier test
-    constraints: Constraints(
-      networkType: NetworkType.connected,
-    ),
+  await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    onDidReceiveNotificationResponse: (payload) {
+      if (payload == "out_of_stock") {
+        navigatorKey.currentState?.push(MaterialPageRoute(
+            builder: (_) => OutOfStockScreen()));
+      }
+    },
   );
 
   runApp(MyApp());
 }
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       // home: HomePage(),
       // home: LoginScreen(),  // Change ici la page d'accueil pour LoginScreen
