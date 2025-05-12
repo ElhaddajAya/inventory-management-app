@@ -117,8 +117,7 @@ class _UpdateCategoryScreenState extends State<UpdateCategoryScreen> {
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  fillColor: Colors.white,
-                  filled: true,
+
                   labelText: "Nom de la catégorie",
                   labelStyle: TextStyle(color: Colors.lightBlueAccent),
                   prefixIcon: Icon(Icons.label, color: Colors.lightBlueAccent),
@@ -161,8 +160,7 @@ class _UpdateCategoryScreenState extends State<UpdateCategoryScreen> {
                     borderSide: BorderSide(color: Colors.lightBlueAccent, width: 2),
                   ),
                   prefixIcon: Icon(Icons.image, color: Colors.lightBlueAccent),
-                  fillColor: Colors.white,
-                  filled: true,
+
                 ),
                 dropdownColor: Colors.white,
                 validator: (value) => value == null ? "Veuillez sélectionner une icône" : null,
@@ -199,8 +197,7 @@ class _UpdateCategoryScreenState extends State<UpdateCategoryScreen> {
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide(color: Colors.lightBlueAccent, width: 2),
                   ),
-                  fillColor: Colors.white,
-                  filled: true,
+
                 ),
                 dropdownColor: Colors.white,
                 validator: (value) => value == null ? "Veuillez sélectionner une couleur" : null,

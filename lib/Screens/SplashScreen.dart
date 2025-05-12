@@ -127,14 +127,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                   textAlign: TextAlign.center,
                 ),
               ),
-              SizedBox(height: 30),
-              // Indicateur de chargement
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              ),
             ],
           ),
         ),

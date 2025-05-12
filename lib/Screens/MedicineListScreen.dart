@@ -169,8 +169,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                   borderSide: BorderSide(color: Colors.lightBlueAccent, width: 2),
                 ),
                 contentPadding: EdgeInsets.symmetric(vertical: 0),
-                filled: true,
-                fillColor: Colors.white,
+
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
                   icon: Icon(Icons.clear, color: Colors.grey),

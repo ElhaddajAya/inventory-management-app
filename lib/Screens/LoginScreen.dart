@@ -58,8 +58,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextFormField(
                       controller: _emailController,
                       decoration: InputDecoration(
-                        fillColor: Colors.white,
-                        filled: true,
                         labelText: "Email ou nom d'utilisateur",
                         labelStyle: TextStyle(color: Colors.lightBlueAccent),
                         prefixIcon: Icon(Icons.email, color: Colors.lightBlueAccent),
@@ -84,8 +82,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
-                        fillColor: Colors.white,
-                        filled: true,
                         labelText: "Mot de passe",
                         labelStyle: TextStyle(color: Colors.lightBlueAccent),
                         prefixIcon: Icon(Icons.lock, color: Colors.lightBlueAccent),
@@ -194,8 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: _resetEmailController,
                 decoration: InputDecoration(
-                  fillColor: Colors.white,
-                  filled: true,
+
                   labelText: "Email",
                   labelStyle: TextStyle(color: Colors.lightBlueAccent),
                   prefixIcon: Icon(Icons.email, color: Colors.lightBlueAccent),

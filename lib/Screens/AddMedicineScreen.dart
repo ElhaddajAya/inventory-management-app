@@ -97,8 +97,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                 TextFormField(
                   controller: _nameController,
                   decoration: InputDecoration(
-                    fillColor: Colors.white,
-                    filled: true,
+
                     labelText: "Nom du médicament",
                     labelStyle: TextStyle(color: Colors.lightBlueAccent),
                     prefixIcon: Icon(Icons.medication, color: Colors.lightBlueAccent),
@@ -124,8 +123,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                   controller: _stockController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    fillColor: Colors.white,
-                    filled: true,
+
                     labelText: "Quantité en stock",
                     labelStyle: TextStyle(color: Colors.lightBlueAccent),
                     prefixIcon: Icon(Icons.inventory, color: Colors.lightBlueAccent),
@@ -154,8 +152,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                   controller: _priceController,
                   keyboardType: TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
-                    fillColor: Colors.white,
-                    filled: true,
+
                     labelText: "Prix (DH)",
                     labelStyle: TextStyle(color: Colors.lightBlueAccent),
                     hintText: "Ex: 45.50",
@@ -194,8 +191,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(color: Colors.lightBlueAccent, width: 2),
                     ),
-                    fillColor: Colors.white,
-                    filled: true,
+
                   ),
                   items: _providers.map((provider) {
                     return DropdownMenuItem<String>(

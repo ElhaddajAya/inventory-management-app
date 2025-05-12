@@ -106,8 +106,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  fillColor: Colors.white,
-                  filled: true,
+
                   labelText: "Nom de la catégorie",
                   labelStyle: TextStyle(color: Colors.lightBlueAccent),
                   prefixIcon: Icon(Icons.label, color: Colors.lightBlueAccent),
@@ -128,8 +127,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
               DropdownButtonFormField<IconData>(
                 value: _selectedIcon,
                 decoration: InputDecoration(
-                  fillColor: Colors.white,
-                  filled: true,
+
                   labelText: "Icône",
                   labelStyle: TextStyle(color: Colors.lightBlueAccent),
                   prefixIcon: Icon(Icons.image, color: Colors.lightBlueAccent),
@@ -161,8 +159,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide(color: Colors.lightBlueAccent, width: 2),
                   ),
-                  fillColor: Colors.white,
-                  filled: true,
+
                 ),
                 dropdownColor: Colors.white,
                 items: _colors.entries.map((entry) {
