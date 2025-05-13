@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:pharmacy_stock_management_app/Screens/AllMedicinesScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/OutOfStockScreen.dart';
+import 'package:pharmacy_stock_management_app/Screens/config.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -88,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> checkOutOfStock() async {
-    final url = 'http://192.168.1.6/pharmacy_api/api.php';
+    final url = '${baseURL}api.php';
     final response = await http.post(
       Uri.parse(url),
       body: {'action': 'get_out_of_stock'},
@@ -103,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> fetchStatistics() async {
-    final url = 'http://192.168.1.6/pharmacy_api/api.php'; // Remplace par l'URL de ton API
+    final url = '${baseURL}api.php'; // Remplace par l'URL de ton API
 
     // D'abord, récupérer les statistiques générales
     final statsResponse = await http.post(
