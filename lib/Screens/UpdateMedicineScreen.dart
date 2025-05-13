@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:image_picker/image_picker.dart';
+import 'package:pharmacy_stock_management_app/Screens/config.dart';
 
 class UpdateMedicineScreen extends StatefulWidget {
   final Map medicine;
@@ -58,7 +59,7 @@ class _UpdateMedicineScreenState extends State<UpdateMedicineScreen> {
     });
     try {
       final response = await http.post(
-        Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+        Uri.parse("${baseURL}api.php"),
         body: {"action": "list_providers"},
       );
       if (response.statusCode == 200) {
@@ -103,7 +104,7 @@ class _UpdateMedicineScreenState extends State<UpdateMedicineScreen> {
   Future<void> _fetchCategories() async {
     try {
       final response = await http.post(
-        Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+        Uri.parse("${baseURL}api.php"),
         body: {"action": "list_categories"},
       );
 
@@ -377,7 +378,7 @@ class _UpdateMedicineScreenState extends State<UpdateMedicineScreen> {
                           if (_formKey.currentState!.validate()) {
                             try {
                               final response = await http.post(
-                                Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+                                Uri.parse("${baseURL}api.php"),
                                 body: {
                                   "action": "update_medicine",
                                   "id": widget.medicine["id"].toString(),

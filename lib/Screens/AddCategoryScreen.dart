@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:pharmacy_stock_management_app/Screens/config.dart';
 
 class AddCategoryScreen extends StatefulWidget {
   @override
@@ -60,7 +61,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
       final colorName = _colors.entries.firstWhere((e) => e.value == _selectedColor).key;
 
       final response = await http.post(
-        Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+        Uri.parse("${baseURL}api.php"),
         body: {
           "action": "add_category",
           "name": _nameController.text,

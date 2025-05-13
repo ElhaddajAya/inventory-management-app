@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:pharmacy_stock_management_app/Screens/config.dart';
 
 class UpdateProviderScreen extends StatefulWidget {
   final Map<String, String> provider;
@@ -207,7 +208,7 @@ class _UpdateProviderScreenState extends State<UpdateProviderScreen> {
                         onPressed: () async {
                           if (_formKey.currentState!.validate() && _selectedCity != null) {
                             final response = await http.post(
-                              Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+                              Uri.parse("${baseURL}api.php"),
                               body: {
                                 "action": "update_provider",
                                 "id": widget.provider["id"].toString(),

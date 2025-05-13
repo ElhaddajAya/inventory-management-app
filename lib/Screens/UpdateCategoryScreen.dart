@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:pharmacy_stock_management_app/Screens/config.dart';
+
 class UpdateCategoryScreen extends StatefulWidget {
   final Map<String, dynamic> category;
 
@@ -71,7 +73,7 @@ class _UpdateCategoryScreenState extends State<UpdateCategoryScreen> {
       final colorName = _colors.entries.firstWhere((e) => e.value == _selectedColor).key;
 
       final response = await http.post(
-        Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+        Uri.parse("${baseURL}api.php"),
         body: {
           "action": "update_category",
           "id": widget.category['id'].toString(),

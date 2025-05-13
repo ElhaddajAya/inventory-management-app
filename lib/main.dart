@@ -6,6 +6,7 @@ import 'package:pharmacy_stock_management_app/Screens/MyAccountScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/OutOfStockScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/ProviderListScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/SplashScreen.dart';
+import 'package:pharmacy_stock_management_app/Screens/config.dart';
 import 'dart:convert';
 import 'package:workmanager/workmanager.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -22,7 +23,7 @@ void callbackDispatcher() {
 
 Future<void> sendOutOfStockNotification() async {
   final response = await http.post(
-    Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+    Uri.parse("${baseURL}api.php"),
     body: {"action": "list_out_of_stock_medicines"},
   );
 

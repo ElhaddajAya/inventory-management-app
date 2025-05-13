@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:pharmacy_stock_management_app/Screens/AddCategoryScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/UpdateCategoryScreen.dart';
+import 'package:pharmacy_stock_management_app/Screens/config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'MedicineListScreen.dart';
 
@@ -66,7 +67,7 @@ class _CategoryScreen extends State<CategoryScreen> {
     });
 
     final response = await http.post(
-      Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+      Uri.parse("${baseURL}api.php"),
       body: {"action": "list_categories"},
     );
 
@@ -318,7 +319,7 @@ class _CategoryScreen extends State<CategoryScreen> {
   Future<void> _deleteCategory(String categoryName) async {
     final category = categories.firstWhere((c) => c["name"] == categoryName);
     final response = await http.post(
-      Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+      Uri.parse("${baseURL}api.php"),
       body: {
         "action": "delete_category",
         "id": category["id"].toString(),

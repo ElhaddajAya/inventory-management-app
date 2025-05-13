@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:image_picker/image_picker.dart';
+import 'package:pharmacy_stock_management_app/Screens/config.dart';
 
 class AddMedicineScreen extends StatefulWidget {
   final String category;
@@ -44,7 +45,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
 
   Future<void> _fetchProviders() async {
     final response = await http.post(
-      Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+      Uri.parse("${baseURL}api.php"),
       body: {"action": "list_providers"},
     );
 
@@ -290,7 +291,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
 
                             // Envoi des données vers l'API pour ajouter le médicament
                             final response = await http.post(
-                              Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+                              Uri.parse("${baseURL}api.php"),
                               body: {
                                 "action": "add_medicine",
                                 "name": newMedicine["name"],

@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:pharmacy_stock_management_app/Screens/AddProviderScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/UpdateProviderScreen.dart';
+import 'package:pharmacy_stock_management_app/Screens/config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -82,7 +83,7 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
   Future<void> fetchProviders() async {
     try {
       final response = await http.post(
-        Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+        Uri.parse("${baseURL}api.php"),
         body: {"action": "list_providers"},
       );
 
@@ -120,7 +121,7 @@ class _ProviderlistScreenState extends State<ProviderlistScreen> {
   Future<void> _deleteProvider(String providerId, String providerName, int index) async {
     try {
       final response = await http.post(
-        Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+        Uri.parse("${baseURL}api.php"),
         body: {
           "action": "delete_provider",
           "id": providerId,

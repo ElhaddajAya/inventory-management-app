@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:pharmacy_stock_management_app/Screens/HomeScreen.dart';
+import 'package:pharmacy_stock_management_app/Screens/config.dart';
 import 'package:pharmacy_stock_management_app/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -236,7 +237,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+        Uri.parse("${baseURL}api.php"),
         body: {
           "action": "login",
           "email": email,

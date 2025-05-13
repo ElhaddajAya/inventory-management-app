@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:pharmacy_stock_management_app/Screens/AddMedicineScreen.dart';
 import 'package:pharmacy_stock_management_app/Screens/UpdateMedicineScreen.dart';
+import 'package:pharmacy_stock_management_app/Screens/config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MedicineListScreen extends StatefulWidget {
@@ -65,7 +66,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
 
   Future<void> fetchMedicines() async {
     final response = await http.post(
-      Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+      Uri.parse("${baseURL}api.php"),
       body: {
         "action": "list_medicines_by_category",
         "category_id": widget.categoryId,
@@ -100,7 +101,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
   Future<void> _deleteMedicine(String medicineId, String medicineName) async {
     try {
       final response = await http.post(
-        Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+        Uri.parse("${baseURL}api.php"),
         body: {
           "action": "delete_medicine",
           "id": medicineId.toString(),

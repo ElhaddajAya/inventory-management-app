@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:pharmacy_stock_management_app/Screens/config.dart';
 
 class AddProviderScreen extends StatefulWidget {
   @override
@@ -195,7 +196,7 @@ class _AddProviderScreenState extends State<AddProviderScreen> {
                         onPressed: () async {
                           if (_formKey.currentState!.validate()) {
                             final response = await http.post(
-                              Uri.parse("http://192.168.1.6/pharmacy_api/api.php"),
+                              Uri.parse("${baseURL}api.php"),
                               body: {
                                 "action": "add_provider",
                                 "name": _nameController.text,
